@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"net"
 	"os"
 	"os/signal"
@@ -10,6 +8,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -123,29 +124,25 @@ func drain(opt *Options, conn net.Conn) error {
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
 	if err != nil {
-		log.Error("error reading ", err)
+		log.Error("Error reading: ", err)
 		return err
 	}
 
 	hex := BytesToHex(buf[:n])
 
-	//is encrypted ?
 	encrypted := false
 	if buf[4] == byte(0x01) {
 		encrypted = true
 	}
 
-	//message length
 	length := buf[1]
-
-	//message sequence number
 	seq := buf[3]<<8 | buf[2]
 
 	header := &Header{
 		Length:    int(length),
 		Seq:       int(seq),
 		Encrypted: encrypted,
-		FrameId:   hex[5],
+		FrameId:   strconv.Itoa(int(buf[4])),
 	}
 
 	log.WithFields(log.Fields{
@@ -153,15 +150,17 @@ func drain(opt *Options, conn net.Conn) error {
 		"encrypted": encrypted,
 		"length":    length,
 		"seq":       seq,
-		"frame_id":  int(buf[5]),
-	}).Info("received message")
+		"frame_id":  int(buf[4]),
+	}).Info("Received message")
 
-	switch buf[5] {
+	log.Debugf("buf[4] (frame_id in hex): %X", buf[4]) // Added for clarity
+
+	switch buf[4] {
 	case Verification:
 		VerificationRouter(opt, buf, hex, header, conn)
 		break
 	case Heartbeat:
-		HeartbeatRouter(opt, hex, header, conn)
+		HeartbeatRouter(buf, header, conn)
 		break
 	case BillingModelVerification:
 		BillingModelVerificationRouter(opt, hex, header, conn)
@@ -190,6 +189,18 @@ func drain(opt *Options, conn net.Conn) error {
 	case TransactionRecord:
 		TransactionRecordMessageRouter(opt, buf, hex, header)
 		break
+	case DeviceLogin:
+		log.Debug("Handling Device Login...")
+		DeviceLoginRouter(opt, buf, header, conn)
+		break
+	case RemoteStart:
+		RemoteStartRouter(buf, header, conn)
+		break
+	case RemoteStop:
+		RemoteStopRouter(buf, header, conn)
+		break
+	case SubmitFinalStatus:
+		SubmitFinalStatusRouter(opt, buf, header, conn)
 	default:
 		log.WithFields(log.Fields{
 			"frame_id": int(buf[5]),

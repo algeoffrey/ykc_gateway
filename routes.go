@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"net"
+
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"net"
 )
 
 func VerificationRouter(opt *Options, buf []byte, hex []string, header *Header, conn net.Conn) {
@@ -57,31 +59,54 @@ func VerificationResponseRouter(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "done"})
 }
 
-func HeartbeatRouter(opt *Options, hex []string, header *Header, conn net.Conn) {
-	msg := PackHeartbeatMessage(hex, header)
-	log.WithFields(log.Fields{
-		"id":         msg.Id,
-		"gun":        msg.Gun,
-		"gun_status": msg.GunStatus,
-	}).Debug("[03] Heartbeat message")
+func SendHeartbeatResponse(conn net.Conn, header *Header) error {
+    resp := &bytes.Buffer{}
 
-	//auto response
-	if opt.AutoHeartbeatResponse {
-		_ = ResponseToHeartbeat(&HeartbeatResponseMessage{
-			Header:   header,
-			Id:       msg.Id,
-			Gun:      msg.Gun,
-			Response: 0,
-		})
-	}
+    // Frame Header
+    resp.Write(HexToBytes("5AA5"))
 
-	//forward
-	if opt.MessageForwarder != nil {
-		//convert msg to json string bytes
-		b, _ := json.Marshal(msg)
-		_ = opt.MessageForwarder.Publish("03", b)
-	}
+    // Data Length
+    resp.Write(HexToBytes("0400"))
+
+    // Command
+    resp.Write([]byte{0x82})
+
+    // Reserved Field
+    resp.Write([]byte{0x00})
+
+    // Checksum
+    checksum := CalculateChecksum(resp.Bytes()[2:])
+    resp.Write([]byte{checksum})
+
+    _, err := conn.Write(resp.Bytes())
+    if err != nil {
+        log.Errorf("Failed to send Heartbeat Response: %v", err)
+        return err
+    }
+    log.Debug("Sent Heartbeat Response successfully")
+    return nil
 }
+
+
+func HeartbeatRouter(buf []byte, header *Header, conn net.Conn) {
+    msg := PackHeartbeatMessage(buf, header)
+    if msg == nil {
+        log.Error("Failed to parse Heartbeat message")
+        return
+    }
+
+    log.WithFields(log.Fields{
+        "header":         msg.Header,
+        "signalValue":    msg.SignalValue,
+        "temperature":    msg.Temperature,
+        "totalPortCount": msg.TotalPortCount,
+        "portStatus":     msg.PortStatus,
+    }).Debug("[82] Heartbeat message")
+
+    // Send Heartbeat Response
+    _ = SendHeartbeatResponse(conn, header)
+}
+
 
 func BillingModelVerificationRouter(opt *Options, hex []string, header *Header, conn net.Conn) {
 	msg := PackBillingModelVerificationMessage(hex, header)
@@ -348,3 +373,174 @@ func ChargingFinishedMessageRouter(opt *Options, hex []string, header *Header) {
 		_ = opt.MessageForwarder.Publish("19", b)
 	}
 }
+
+func DeviceLoginRouter(opt *Options, buf []byte, header *Header, conn net.Conn) {
+	// Unpack Device Login Message
+	msg := PackDeviceLoginMessage(buf, header)
+
+	if msg == nil {
+        log.Error("Failed to parse Device Login message due to checksum mismatch or invalid buffer")
+        return
+    }
+
+	log.Debugf("Raw Buffer: %x", buf)
+
+		// Debug: Log the parsed message
+		log.WithFields(log.Fields{
+			"imei":            msg.IMEI,
+			"devicePortCount": msg.DevicePortCount,
+			"hardwareVersion": msg.HardwareVersion,
+			"softwareVersion": msg.SoftwareVersion,
+			"ccid":            msg.CCID,
+			"signalValue":     msg.SignalValue,
+			"loginReason":     msg.LoginReason,
+		}).Info("Parsed Device Login Message")
+
+	// Log the extracted details
+	log.WithFields(log.Fields{
+		"imei":            msg.IMEI,
+		"devicePortCount": msg.DevicePortCount,
+		"hardwareVersion": msg.HardwareVersion,
+		"softwareVersion": msg.SoftwareVersion,
+		"ccid":            msg.CCID,
+		"signalValue":     msg.SignalValue,
+		"loginReason":     msg.LoginReason,
+	}).Debug("[81] Device Login message")
+
+	// Auto response preparation
+	heartbeatPeriod := 30 // Default heartbeat interval (30 seconds)
+	if heartbeatPeriod < 10 || heartbeatPeriod > 250 {
+		heartbeatPeriod = 30 // Enforce valid range (10-250 seconds)
+	}
+
+	resp := &DeviceLoginResponseMessage{
+		Header: &Header{
+			Seq:       header.Seq,
+			Encrypted: false,
+		},
+		Time:            "00000000000000", // Reserved Time (BCD format)
+		HeartbeatPeriod: heartbeatPeriod, // Valid interval
+		Result:          0x00,            // Login successful
+	}
+
+	// Pack the response message
+	data := PackDeviceLoginResponseMessage(resp)
+
+	// Send the response back to the device
+	_, err := conn.Write(data)
+	if err != nil {
+		log.Errorf("Failed to send Device Login response: %v", err)
+		return
+	}
+	log.Debug("Sent Device Login response successfully")
+
+	// Forward the Device Login message to an external system (optional)
+	if opt.MessageForwarder != nil {
+		jsonMsg, err := json.Marshal(msg)
+		if err != nil {
+			log.Errorf("Failed to marshal Device Login message: %v", err)
+			return
+		}
+		err = opt.MessageForwarder.Publish("81", jsonMsg)
+		if err != nil {
+			log.Errorf("Failed to publish Device Login message: %v", err)
+		}
+	}
+}
+
+func RemoteStartRouter(buf []byte, header *Header, conn net.Conn) {
+    msg := PackRemoteStartMessage(buf, header)
+    if msg == nil {
+        log.Error("Failed to parse Remote Start message")
+        return
+    }
+
+    log.WithFields(log.Fields{
+        "port":           msg.Port,
+        "orderNumber":    msg.OrderNumber,
+        "startMethod":    msg.StartMethod,
+        "cardNumber":     msg.CardNumber,
+        "chargingMethod": msg.ChargingMethod,
+        "chargingParam":  msg.ChargingParam,
+        "availableAmount": msg.AvailableAmount,
+    }).Debug("[83] Remote Start message")
+
+    // Auto Response
+    response := &RemoteStartResponseMessage{
+        Header:      header,
+        Port:        msg.Port,
+        OrderNumber: msg.OrderNumber,
+        StartMethod: msg.StartMethod,
+        Result:      0x00, // 0x00 for success
+    }
+
+    data := PackRemoteStartResponseMessage(response)
+    _, err := conn.Write(data)
+    if err != nil {
+        log.Errorf("Failed to send Remote Start response: %v", err)
+    } else {
+        log.Debug("Sent Remote Start response successfully")
+    }
+}
+
+func RemoteStopRouter(buf []byte, header *Header, conn net.Conn) {
+    msg := PackRemoteStopMessage(buf, header)
+    if msg == nil {
+        log.Error("Failed to parse Remote Stop message")
+        return
+    }
+
+    log.WithFields(log.Fields{
+        "port":        msg.Port,
+        "orderNumber": msg.OrderNumber,
+    }).Debug("[84] Remote Stop message")
+
+    // Auto Response
+    response := &RemoteStopResponseMessage{
+        Header:      header,
+        Port:        msg.Port,
+        OrderNumber: msg.OrderNumber,
+        Result:      0x00, // 0x00 for success, other values for specific errors
+    }
+
+    data := PackRemoteStopResponseMessage(response)
+    _, err := conn.Write(data)
+    if err != nil {
+        log.Errorf("Failed to send Remote Stop response: %v", err)
+    } else {
+        log.Debug("Sent Remote Stop response successfully")
+    }
+}
+
+
+func SubmitFinalStatusRouter(opt *Options, buf []byte, header *Header, conn net.Conn) {
+    msg := PackSubmitFinalStatusMessage(buf, header)
+    log.WithFields(log.Fields{
+        "port":              msg.Port,
+        "orderNumber":       msg.OrderNumber,
+        "chargingTime":      msg.ChargingTime,
+        "electricityUsage":  msg.ElectricityUsage,
+        "usageCost":         msg.UsageCost,
+        "stopReason":        msg.StopReason,
+        "stopPower":         msg.StopPower,
+        "segmentCount":      msg.SegmentCount,
+        "segmentDurations":  msg.SegmentDurations,
+        "segmentPrices":     msg.SegmentPrices,
+    }).Debug("[85] Submit Final Status message")
+
+    // Auto Response
+    response := &SubmitFinalStatusResponse{
+        Header: header,
+        Result: 0x00, // Success
+    }
+
+    data := PackSubmitFinalStatusResponse(response)
+    _, err := conn.Write(data)
+    if err != nil {
+        log.Errorf("Failed to send Submit Final Status response: %v", err)
+    } else {
+        log.Debug("Sent Submit Final Status response successfully")
+    }
+}
+
+

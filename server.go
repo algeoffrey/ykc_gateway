@@ -45,6 +45,44 @@ type Server struct {
 	Shutdown  bool
 }
 
+func (s *Server) handleClient(conn net.Conn) {
+	defer conn.Close()
+
+	buffer := make([]byte, 1024)
+	for {
+		n, err := conn.Read(buffer)
+		if err != nil {
+			log.Errorf("Failed to read from client: %v", err)
+			return
+		}
+
+		if n > 0 {
+			data := buffer[:n]
+			log.Infof("Received data: %x", data)
+
+			// Parse the command field
+			if len(data) < 5 {
+				log.Warn("Invalid data length")
+				continue
+			}
+
+			// Extract command byte (assuming it's the 4th byte in the message)
+			cmd := data[4]
+
+			// Route to the appropriate handler
+			header := &Header{Seq: 0, Encrypted: false} // Add actual header parsing if needed
+			//hexData := BytesToHex(data)
+			switch cmd {
+			case 0x81:
+				DeviceLoginRouter(s.Opt, data, header, conn)
+			default:
+				log.Warnf("Unsupported command: %x", cmd)
+			}
+		}
+	}
+}
+
+
 func NewServer(opts *Options) (*Server, error) {
 	s := &Server{
 		Opt: opts,
@@ -77,10 +115,15 @@ func (s *Server) Start() {
 	if port == 0 {
 		o.TcpPort = hl.Addr().(*net.TCPAddr).Port
 	}
+	log.Infof("Server listening on %s", hp)
 
-	//go s.acceptConnections(hl, "YKC", func(conn net.Conn) { s.createClient(conn, nil) }, nil)
+	// Accept connections
+	go s.acceptConnections(hl, "YKC", func(conn net.Conn) {
+		s.handleClient(conn) // Handle each client connection
+	}, nil)
 	s.Mu.Unlock()
 }
+
 
 // Protected check on running state
 func (s *Server) isRunning() bool {

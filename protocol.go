@@ -5,6 +5,8 @@ import (
 	hex2 "encoding/hex"
 	"fmt"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -13,7 +15,7 @@ const (
 
 	//device -> platform
 	Verification                = byte(0x01)
-	Heartbeat                   = byte(0x03)
+	Heartbeat                   = byte(0x82)
 	BillingModelVerification    = byte(0x05)
 	BillingModelRequest         = byte(0x09)
 	OfflineDataReport           = byte(0x13)
@@ -61,7 +63,23 @@ const (
 	UpDownFloorLock                  = byte(0x62)
 	RemoteRebootRequest              = byte(0x92)
 	OtaRequest                       = byte(0x94)
+
+	//Handle protocol from Huaping Power
+	DeviceLogin = byte(0x81)
+	RemoteStart = byte(0x83)
+	RemoteStop = byte(0x84)
+	SubmitFinalStatus = byte(0x85)
 )
+
+func CalculateChecksum(data []byte) byte {
+    var checksum byte
+    for _, b := range data {
+        checksum += b
+    }
+    return checksum
+}
+
+
 
 type Header struct {
 	Length    int    `json:"length"`
@@ -281,31 +299,39 @@ func PackBillingModelVerificationResponseMessage(msg *BillingModelVerificationRe
 }
 
 type HeartbeatMessage struct {
-	Header    *Header `json:"header"`
-	Id        string  `json:"id"`
-	Gun       string  `json:"gun"`
-	GunStatus int     `json:"gunStatus"`
+	Header    		*Header `json:"header"`
+	SignalValue 	int		`json:"signalValue"`
+	Temperature		int		`json:"temperature"`
+	TotalPortCount	int		`json:"totalPortCount"`
+	PortStatus		[]int	`json:"portStatus"`
 }
 
-func PackHeartbeatMessage(hex []string, header *Header) *HeartbeatMessage {
-	//id
-	id := ""
-	for _, v := range hex[6:13] {
-		id += v
-	}
-	//gun
-	gun := hex[13]
-	//gun status
-	gs, _ := strconv.ParseInt(hex[14], 16, 64)
+func PackHeartbeatMessage(buf []byte, header *Header) *HeartbeatMessage {
+    payload := buf[5:] // Skip the header (first 5 bytes)
 
-	msg := &HeartbeatMessage{
-		Header:    header,
-		Id:        id,
-		Gun:       gun,
-		GunStatus: int(gs),
-	}
-	return msg
+    // Parse fields
+    signalValue := int(payload[0])
+    temperature := int(payload[1])
+    totalPortCount := int(payload[2])
+    portStatus := make([]int, totalPortCount)
+    for i := 0; i < totalPortCount; i++ {
+        portStatus[i] = int(payload[3+i])
+    }
+
+    log.Debugf("Parsed Signal Value: %d", signalValue)
+    log.Debugf("Parsed Temperature: %d", temperature)
+    log.Debugf("Parsed Total Port Count: %d", totalPortCount)
+    log.Debugf("Parsed Port Status: %v", portStatus)
+
+    return &HeartbeatMessage{
+        Header:         header,
+        SignalValue:    signalValue,
+        Temperature:    temperature,
+        TotalPortCount: totalPortCount,
+        PortStatus:     portStatus,
+    }
 }
+
 
 type HeartbeatResponseMessage struct {
 	Header   *Header `json:"header"`
@@ -970,4 +996,270 @@ func PackChargingFinishedMessage(hex []string, header *Header) *ChargingFinished
 		ChargingUnitId:                   int(chargingUnitId),
 	}
 	return msg
+}
+
+type DeviceLoginMessage struct {
+	Header            *Header `json:"Header"`
+	IMEI              string  `json:"imei"`
+	DevicePortCount   int     `json:"devicePortCount"`
+	HardwareVersion   string  `json:"hardwareVersion"`
+	SoftwareVersion   string  `json:"softwareVersion"`
+	CCID              string  `json:"ccid"`
+	SignalValue       int     `json:"signalValue"`
+	LoginReason       int     `json:"loginReason"`
+}
+
+func PackDeviceLoginMessage(buf []byte, header *Header) *DeviceLoginMessage {
+	if len(buf) < 6 {
+		log.Error("Message too short to process")
+		return nil
+	}
+
+	// Start reading from the payload (after the 5-byte header)
+	payload := buf[6:] // Skip header bytes
+
+	// Parse fields
+	imeiHex := payload[:15]
+	imei := hexToASCII(MakeHexStringFromHexArray(BytesToHex(imeiHex)))
+	log.Debugf("Parsed IMEI: %s", imei)
+
+	devicePortCount := int(payload[15])
+	log.Debugf("Parsed Device Port Count: %d", devicePortCount)
+
+	hardwareHex := payload[16:32]
+	hardwareVersion := hexToASCII(MakeHexStringFromHexArray(BytesToHex(hardwareHex)))
+	log.Debugf("Parsed Hardware Version: %s", hardwareVersion)
+
+	softwareHex := payload[32:48]
+	softwareVersion := hexToASCII(MakeHexStringFromHexArray(BytesToHex(softwareHex)))
+	log.Debugf("Parsed Software Version: %s", softwareVersion)
+
+	ccidHex := payload[48:68]
+	ccid := hexToASCII(MakeHexStringFromHexArray(BytesToHex(ccidHex)))
+	log.Debugf("Parsed CCID: %s", ccid)
+
+	signalValue := int(payload[68])
+	log.Debugf("Parsed Signal Value: %d", signalValue)
+
+	loginReason := int(payload[69])
+	log.Debugf("Parsed Login Reason: %d", loginReason)
+
+	return &DeviceLoginMessage{
+		Header:          header,
+		IMEI:            imei,
+		DevicePortCount: devicePortCount,
+		HardwareVersion: hardwareVersion,
+		SoftwareVersion: softwareVersion,
+		CCID:            ccid,
+		SignalValue:     signalValue,
+		LoginReason:     loginReason,
+	}
+}
+
+type DeviceLoginResponseMessage struct {
+	Header          *Header `json:"header"`
+	Time            string  `json:"time"`            // Reserved Time (BCD format)
+	HeartbeatPeriod int     `json:"heartbeatPeriod"` // Heartbeat interval in seconds
+	Result          byte    `json:"result"`          // Login Result (0x00 = success, 0x01 = illegal module, 0xF0 = protocol upgrade)
+}
+
+func PackDeviceLoginResponseMessage(msg *DeviceLoginResponseMessage) []byte {
+	var resp bytes.Buffer
+
+	// Frame Header (5AA5)
+	resp.Write(HexToBytes("5AA5"))
+
+	// Data Length (12 bytes)
+	resp.Write(HexToBytes("0C00"))
+
+	// Command (81)
+	resp.Write([]byte{0x81})
+
+	// Time (7 bytes, BCD format)
+	resp.Write(HexToBytes(msg.Time))
+
+	// Heartbeat Interval (1 byte)
+	resp.Write([]byte{byte(msg.HeartbeatPeriod)})
+
+	// Login Result (1 byte)
+	resp.Write([]byte{byte(msg.Result)})
+
+	return resp.Bytes()
+}
+
+
+type RemoteStartMessage struct {
+	Header          *Header `json:"header"`
+	Port            int     `json:"port"`
+	OrderNumber     uint32  `json:"orderNumber"`
+	StartMethod     int     `json:"startMethod"`
+	CardNumber      uint32  `json:"cardNumber"`
+	ChargingMethod  int     `json:"chargingMethod"`
+	ChargingParam   uint32  `json:"chargingParam"`
+	AvailableAmount uint32  `json:"availableAmount"`
+}
+
+func PackRemoteStartMessage(buf []byte, header *Header) *RemoteStartMessage {
+    payload := buf[5:] // Skip header bytes
+
+    return &RemoteStartMessage{
+        Header:          header,
+        Port:            int(payload[0]),
+        OrderNumber:     uint32(payload[1])<<24 | uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]),
+        StartMethod:     int(payload[5]),
+        CardNumber:      uint32(payload[6])<<24 | uint32(payload[7])<<16 | uint32(payload[8])<<8 | uint32(payload[9]),
+        ChargingMethod:  int(payload[10]),
+        ChargingParam:   uint32(payload[11])<<24 | uint32(payload[12])<<16 | uint32(payload[13])<<8 | uint32(payload[14]),
+        AvailableAmount: uint32(payload[15])<<24 | uint32(payload[16])<<16 | uint32(payload[17])<<8 | uint32(payload[18]),
+    }
+}
+
+type RemoteStartResponseMessage struct {
+	Header      *Header `json:"header"`
+	Port        int     `json:"port"`
+	OrderNumber uint32  `json:"orderNumber"`
+	StartMethod int     `json:"startMethod"`
+	Result      int     `json:"result"`
+}
+
+func PackRemoteStartResponseMessage(msg *RemoteStartResponseMessage) []byte {
+    var resp bytes.Buffer
+
+    // Frame Header (5AA5)
+    resp.Write(HexToBytes("5AA5"))
+
+    // Data Length (7 bytes total)
+    resp.Write([]byte{0x07, 0x00})
+
+    // Command (0x83)
+    resp.Write([]byte{RemoteStart})
+
+    // Payload
+    resp.Write([]byte{byte(msg.Port)})
+    resp.Write([]byte{
+        byte(msg.OrderNumber >> 24),
+        byte(msg.OrderNumber >> 16),
+        byte(msg.OrderNumber >> 8),
+        byte(msg.OrderNumber),
+    })
+    resp.Write([]byte{byte(msg.StartMethod), byte(msg.Result)})
+
+    // Calculate and append checksum
+    checksum := CalculateChecksum(resp.Bytes()[2:])
+    resp.Write([]byte{checksum})
+
+    return resp.Bytes()
+}
+
+type RemoteStopMessage struct {
+	Header      *Header `json:"header"`
+	Port        int     `json:"port"`
+	OrderNumber uint32  `json:"orderNumber"`
+}
+
+func PackRemoteStopMessage(buf []byte, header *Header) *RemoteStopMessage {
+	payload := buf[5:] // Skip the header (first 5 bytes)
+
+	return &RemoteStopMessage{
+		Header:      header,
+		Port:        int(payload[0]),
+		OrderNumber: uint32(payload[1])<<24 | uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]),
+	}
+}
+
+type RemoteStopResponseMessage struct {
+	Header      *Header `json:"header"`
+	Port        int     `json:"port"`
+	OrderNumber uint32  `json:"orderNumber"`
+	Result      byte    `json:"result"`
+}
+
+func PackRemoteStopResponseMessage(msg *RemoteStopResponseMessage) []byte {
+	var resp bytes.Buffer
+
+	// Frame Header
+	resp.Write(HexToBytes("5AA5"))
+
+	// Data Length
+	resp.Write([]byte{0x07, 0x00})
+
+	// Command
+	resp.Write([]byte{0x84})
+
+	// Payload
+	resp.Write([]byte{byte(msg.Port)})
+	resp.Write([]byte{
+		byte(msg.OrderNumber >> 24),
+		byte(msg.OrderNumber >> 16),
+		byte(msg.OrderNumber >> 8),
+		byte(msg.OrderNumber),
+	})
+	resp.Write([]byte{msg.Result})
+
+	// Checksum
+	checksum := CalculateChecksum(resp.Bytes()[2:])
+	resp.Write([]byte{checksum})
+
+	return resp.Bytes()
+}
+
+type SubmitFinalStatusMessage struct {
+    Header            *Header `json:"header"`
+    Port              byte    `json:"port"`
+    OrderNumber       uint32  `json:"orderNumber"`
+    ChargingTime      uint32  `json:"chargingTime"`
+    ElectricityUsage  uint32  `json:"electricityUsage"`
+    UsageCost         uint32  `json:"usageCost"`
+    StopReason        byte    `json:"stopReason"`
+    StopPower         uint16  `json:"stopPower"`
+    CardID            uint32  `json:"cardId"`
+    SegmentCount      byte    `json:"segmentCount"`
+    SegmentDurations  []uint16 `json:"segmentDurations"`
+    SegmentPrices     []uint16 `json:"segmentPrices"`
+    Reserved          []byte   `json:"reserved"`
+}
+
+type SubmitFinalStatusResponse struct {
+    Header       *Header `json:"header"`
+    Result       byte    `json:"result"`
+}
+
+func PackSubmitFinalStatusMessage(buf []byte, header *Header) *SubmitFinalStatusMessage {
+    payload := buf[5:]
+    segmentCount := payload[10]
+
+    return &SubmitFinalStatusMessage{
+        Header:           header,
+        Port:             payload[0],
+        OrderNumber:      uint32(payload[1])<<24 | uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]),
+        ChargingTime:     uint32(payload[5])<<24 | uint32(payload[6])<<16 | uint32(payload[7])<<8 | uint32(payload[8]),
+        ElectricityUsage: uint32(payload[9])<<24 | uint32(payload[10])<<16 | uint32(payload[11])<<8 | uint32(payload[12]),
+        UsageCost:        uint32(payload[13])<<24 | uint32(payload[14])<<16 | uint32(payload[15])<<8 | uint32(payload[16]),
+        StopReason:       payload[17],
+        StopPower:        uint16(payload[18])<<8 | uint16(payload[19]),
+        CardID:           uint32(payload[20])<<24 | uint32(payload[21])<<16 | uint32(payload[22])<<8 | uint32(payload[23]),
+        SegmentCount:     segmentCount,
+        SegmentDurations: parseSegments(payload[24:], int(segmentCount)),
+        SegmentPrices:    parseSegments(payload[24+int(segmentCount)*2:], int(segmentCount)),
+        Reserved:         payload[24+int(segmentCount)*4:],
+    }
+}
+
+func parseSegments(data []byte, count int) []uint16 {
+    segments := make([]uint16, count)
+    for i := 0; i < count; i++ {
+        segments[i] = uint16(data[i*2])<<8 | uint16(data[i*2+1])
+    }
+    return segments
+}
+
+func PackSubmitFinalStatusResponse(msg *SubmitFinalStatusResponse) []byte {
+    resp := &bytes.Buffer{}
+    resp.Write(HexToBytes("5AA5"))
+    resp.Write([]byte{0x02, 0x00})
+    resp.Write([]byte{SubmitFinalStatus})
+    resp.Write([]byte{msg.Result})
+    checksum := CalculateChecksum(resp.Bytes()[2:])
+    resp.Write([]byte{checksum})
+    return resp.Bytes()
 }

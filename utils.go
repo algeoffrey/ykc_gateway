@@ -95,6 +95,11 @@ func HexArrayToBytes(data []string) []byte {
 	return byteArr
 }
 
+func hexToASCII(hexStr string) string {
+	decoded, _ := hex.DecodeString(hexStr)
+	return string(decoded)
+}
+
 func ModbusCRC(pData []byte) []byte {
 	var byCRCHi, byCRCLo byte = 0xff, 0xff
 	var byIdx byte
