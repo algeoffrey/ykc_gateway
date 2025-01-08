@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
-	log "github.com/sirupsen/logrus"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -82,7 +83,6 @@ func (s *Server) handleClient(conn net.Conn) {
 	}
 }
 
-
 func NewServer(opts *Options) (*Server, error) {
 	s := &Server{
 		Opt: opts,
@@ -123,7 +123,6 @@ func (s *Server) Start() {
 	}, nil)
 	s.Mu.Unlock()
 }
-
 
 // Protected check on running state
 func (s *Server) isRunning() bool {

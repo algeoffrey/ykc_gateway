@@ -1,11 +1,14 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -13,16 +16,34 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var clients sync.Map
+
+func StoreClient(id string, conn net.Conn) {
+	clients.Store(id, conn)
+}
+
+func GetClient(id string) (net.Conn, error) {
+	value, ok := clients.Load(id)
+	if ok {
+		conn := value.(net.Conn)
+		return conn, nil
+	} else {
+		return nil, errors.New("client does not exist")
+	}
+}
+
 func SendCustomMessage(c *gin.Context) {
 	// Get the client ID from query parameter
 	clientID := c.DefaultQuery("clientID", "")
+	fmt.Println("custom message called")
 	if clientID == "" {
 		c.JSON(400, gin.H{"error": "client ID is required"})
 		return
 	}
-
+	fmt.Println(clientID)
 	// Retrieve the client connection using the GetClient function
 	conn, err := GetClient(clientID)
+
 	if err != nil {
 		c.JSON(404, gin.H{"error": "client not found"})
 		return
