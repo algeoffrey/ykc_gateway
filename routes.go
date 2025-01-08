@@ -442,9 +442,9 @@ func DeviceLoginRouter(opt *Options, buf []byte, header *Header, conn net.Conn) 
 			Seq:       header.Seq,
 			Encrypted: false,
 		},
-		Time:            "00000000000000", // Reserved Time (BCD format)
-		HeartbeatPeriod: heartbeatPeriod,  // Valid interval
-		Result:          0x00,             // Login successful
+		Time:            "000000000000000000", // Reserved Time (BCD format)
+		HeartbeatPeriod: heartbeatPeriod,      // Valid interval
+		Result:          0x00,                 // Login successful
 	}
 
 	// Pack the response message
