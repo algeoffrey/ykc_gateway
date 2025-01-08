@@ -210,6 +210,12 @@ func drain(opt *Options, conn net.Conn) error {
 		VerificationRouter(opt, buf, hex, header, conn)
 	case Heartbeat:
 		HeartbeatRouter(buf, header, conn)
+		packet := []byte{
+			0x5A, 0xA5, 0x16, 0x00, 0x83, 0x00, 0x02, 0x01,
+			0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0xE8,
+			0x03, 0x00, 0x00, 0x64, 0x00, 0x00, 0xED,
+		}
+		sendMessage(conn, packet)
 	case BillingModelVerification:
 		BillingModelVerificationRouter(opt, hex, header, conn)
 	case BillingModelRequest:
