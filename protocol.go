@@ -305,7 +305,7 @@ type HeartbeatMessage struct {
 }
 
 func PackHeartbeatMessage(buf []byte, header *Header) *HeartbeatMessage {
-	payload := buf[22:] // Skip the header (first 5 bytes)
+	payload := buf[21:] // Skip the header (first 5 bytes)
 
 	// Parse fields
 	signalValue := int(payload[0])
