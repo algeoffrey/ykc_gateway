@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -263,6 +264,8 @@ func drain(opt *Options, conn net.Conn) error {
 func sendMessage(conn net.Conn, message []byte) error {
 	// Convert message to bytes or proper format
 	msgBytes := []byte(message)
+
+	fmt.Println(msgBytes)
 
 	// Send the message to the device
 	_, err := conn.Write(msgBytes)
