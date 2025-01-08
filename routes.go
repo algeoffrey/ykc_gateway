@@ -432,41 +432,41 @@ func DeviceLoginRouter(opt *Options, buf []byte, header *Header, conn net.Conn) 
 	}).Debug("[81] Device Login message")
 
 	// Auto response preparation
-	// heartbeatPeriod := 30 // Default heartbeat interval (30 seconds)
-	// if heartbeatPeriod < 10 || heartbeatPeriod > 250 {
-	// 	heartbeatPeriod = 30 // Enforce valid range (10-250 seconds)
-	// }
-
-	// resp := &DeviceLoginResponseMessage{
-	// 	Header: &Header{
-	// 		Seq:       header.Seq,
-	// 		Encrypted: false,
-	// 	},
-	// 	Time:            "00000000000000", // Reserved Time (BCD format)
-	// 	HeartbeatPeriod: heartbeatPeriod,  // Valid interval
-	// 	Result:          0x00,             // Login successful
-	// }
-
-	// // Pack the response message
-	// data := PackDeviceLoginResponseMessage(resp)
-	// PrintHexAndByte(data)
-	// // Send the response back to the device
-	// _, err := conn.Write(data)
-	// if err != nil {
-	// 	log.Errorf("Failed to send Device Login response: %v", err)
-	// 	return
-	// }
-
-	message := []byte{
-		0x5A, 0xA5, // Frame Header
-		0x0C, 0x00, // Data Length
-		0x81,                                                 // Command
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Data
-		0xF0, 0x7D, // Footer
+	heartbeatPeriod := 30 // Default heartbeat interval (30 seconds)
+	if heartbeatPeriod < 10 || heartbeatPeriod > 250 {
+		heartbeatPeriod = 30 // Enforce valid range (10-250 seconds)
 	}
 
-	PrintHexAndByte(message)
-	sendMessage(conn, message)
+	resp := &DeviceLoginResponseMessage{
+		Header: &Header{
+			Seq:       header.Seq,
+			Encrypted: false,
+		},
+		Time:            "00000000000000", // Reserved Time (BCD format)
+		HeartbeatPeriod: heartbeatPeriod,  // Valid interval
+		Result:          0x00,             // Login successful
+	}
+
+	// Pack the response message
+	data := PackDeviceLoginResponseMessage(resp)
+	PrintHexAndByte(data)
+	// Send the response back to the device
+	_, err := conn.Write(data)
+	if err != nil {
+		log.Errorf("Failed to send Device Login response: %v", err)
+		return
+	}
+
+	// message := []byte{
+	// 	0x5A, 0xA5, // Frame Header
+	// 	0x0C, 0x00, // Data Length
+	// 	0x81,                                                 // Command
+	// 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Data
+	// 	0xF0, 0x7D, // Footer
+	// }
+
+	// PrintHexAndByte(message)
+	// sendMessage(conn, message)
 	log.Debug("Sent Device Login response successfully")
 
 	// Forward the Device Login message to an external system (optional)
