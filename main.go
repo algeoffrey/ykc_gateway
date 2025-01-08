@@ -131,6 +131,7 @@ func enableTcpServer(opt *Options) {
 			continue
 		}
 		StoreClient(conn.RemoteAddr().String(), conn)
+		fmt.Println(conn.RemoteAddr().String())
 		go handleConnection(opt, conn)
 	}
 }
