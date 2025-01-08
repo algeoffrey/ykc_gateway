@@ -207,57 +207,41 @@ func drain(opt *Options, conn net.Conn) error {
 	switch buf[4] {
 	case Verification:
 		VerificationRouter(opt, buf, hex, header, conn)
-		break
 	case Heartbeat:
 		HeartbeatRouter(buf, header, conn)
-		break
 	case BillingModelVerification:
 		BillingModelVerificationRouter(opt, hex, header, conn)
-		break
 	case BillingModelRequest:
 		BillingModelRequestMessageRouter(opt, hex, header, conn)
-		break
 	case OfflineDataReport:
 		OfflineDataReportMessageRouter(opt, buf, hex, header)
-		break
 	case ChargingFinished:
 		ChargingFinishedMessageRouter(opt, hex, header)
-		break
 	case RemoteBootstrapResponse:
 		RemoteBootstrapResponseRouter(opt, hex, header)
-		break
 	case RemoteShutdownResponse:
 		RemoteShutdownResponseRouter(opt, hex, header)
-		break
 	case SetBillingModelResponse:
 		SetBillingModelResponseMessageRouter(opt, hex, header)
-		break
 	case RemoteRebootResponse:
 		RemoteRebootResponseMessageRouter(opt, hex, header)
-		break
 	case TransactionRecord:
 		TransactionRecordMessageRouter(opt, buf, hex, header)
-		break
 	case DeviceLogin:
 		log.Debug("Handling Device Login...")
 		DeviceLoginRouter(opt, buf, header, conn)
-		message := []byte{0x5A, 0xA5, 0x11, 0x00, 0x82, 0x1F, 0x1E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xDC}
-		sendMessage(conn, message)
-		break
+		// message := []byte{0x5A, 0xA5, 0x11, 0x00, 0x82, 0x1F, 0x1E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xDC}
+		// sendMessage(conn, message)
 	case RemoteStart:
 		RemoteStartRouter(buf, header, conn)
-		break
 	case RemoteStop:
 		RemoteStopRouter(buf, header, conn)
-		break
 	case SubmitFinalStatus:
 		SubmitFinalStatusRouter(opt, buf, header, conn)
 	default:
 		log.WithFields(log.Fields{
 			"frame_id": int(buf[5]),
 		}).Info("unsupported message")
-		break
-
 	}
 	return nil
 }
