@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -35,12 +34,11 @@ func GetClient(id string) (net.Conn, error) {
 func SendCustomMessage(c *gin.Context) {
 	// Get the client ID from query parameter
 	clientID := c.DefaultQuery("clientID", "")
-	fmt.Println("custom message called")
 	if clientID == "" {
 		c.JSON(400, gin.H{"error": "client ID is required"})
 		return
 	}
-	fmt.Println(clientID)
+
 	// Retrieve the client connection using the GetClient function
 	conn, err := GetClient(clientID)
 
@@ -242,6 +240,8 @@ func drain(opt *Options, conn net.Conn) error {
 	case DeviceLogin:
 		log.Debug("Handling Device Login...")
 		DeviceLoginRouter(opt, buf, header, conn)
+		message := []byte{0x5A, 0xA5, 0x11, 0x00, 0x82, 0x1F, 0x1E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xDC}
+		sendMessage(conn, message)
 		break
 	case RemoteStart:
 		RemoteStartRouter(buf, header, conn)
