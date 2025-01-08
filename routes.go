@@ -464,6 +464,8 @@ func DeviceLoginRouter(opt *Options, buf []byte, header *Header, conn net.Conn) 
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Data
 		0xF0, 0x7D, // Footer
 	}
+
+	PrintHexAndByte(message)
 	sendMessage(conn, message)
 	log.Debug("Sent Device Login response successfully")
 
