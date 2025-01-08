@@ -6,20 +6,35 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
 
 func PrintHexAndByte(data []byte) {
-	// Print the hexadecimal string representation
+	// Convert the byte slice to a hexadecimal string
 	hexString := hex.EncodeToString(data)
-	fmt.Printf("Hex: %s\n", hexString)
+
+	// Split the hex string into groups of 4 characters (2 bytes per group)
+	var groupedHex []string
+	for i := 0; i < len(hexString); i += 4 {
+		end := i + 4
+		if end > len(hexString) {
+			end = len(hexString)
+		}
+		groupedHex = append(groupedHex, hexString[i:end])
+	}
+
+	// Join the groups with a space separator
+	formattedHex := strings.Join(groupedHex, " ")
+
+	// Print the hexadecimal string in groups of 2 bytes
+	fmt.Printf("Hex: %s\n", formattedHex)
 
 	// Print the byte slice
 	fmt.Printf("Byte: %v\n", data)
 }
-
 func VerificationRouter(opt *Options, buf []byte, hex []string, header *Header, conn net.Conn) {
 	msg := PackVerificationMessage(buf, hex, header)
 
