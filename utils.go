@@ -100,6 +100,10 @@ func hexToASCII(hexStr string) string {
 	return string(decoded)
 }
 
+func ASCIIToHex(ascii string) string {
+	return hex.EncodeToString([]byte(ascii))
+}
+
 func ModbusCRC(pData []byte) []byte {
 	var byCRCHi, byCRCLo byte = 0xff, 0xff
 	var byIdx byte
