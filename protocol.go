@@ -1096,6 +1096,7 @@ type RemoteStartMessage struct {
 }
 
 func PackRemoteStartMessage(buf []byte, header *Header) *RemoteStartMessage {
+	PrintHexAndByte(buf)
 	payload := buf[5:] // Skip header bytes
 
 	return &RemoteStartMessage{
