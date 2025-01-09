@@ -281,7 +281,7 @@ func drain(opt *Options, conn net.Conn) error {
 }
 func sendMessage(conn net.Conn, message []byte) error {
 	// Convert message to bytes or proper format
-	fmt.Printf("Hex: %s\n", message)
+	PrintHexAndByte(message)
 	// Send the message to the device
 	_, err := conn.Write(message)
 	if err != nil {
