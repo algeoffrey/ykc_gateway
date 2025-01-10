@@ -153,8 +153,7 @@ func enableTcpServer(opt *Options) {
 func enableHttpServer(opt *Options) {
 	fmt.Println("Http ok")
 	r := gin.Default()
-	r.GET("/", HelloWorldRouter)
-	r.GET("/send-custom-message", SendCustomMessage)
+	r.GET("/", SendCustomMessage)
 	r.POST("/proxy/02", VerificationResponseRouter)
 	r.POST("/proxy/06", BillingModelVerificationResponseRouter)
 	r.POST("/proxy/0a", BillingModelResponseMessageRouter)
