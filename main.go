@@ -139,6 +139,7 @@ func enableTcpServer(opt *Options) {
 
 func enableHttpServer(opt *Options) {
 	r := gin.Default()
+	r.GET("/", HelloWorldRouter)
 	r.POST("/proxy/02", VerificationResponseRouter)
 	r.POST("/proxy/06", BillingModelVerificationResponseRouter)
 	r.POST("/proxy/0a", BillingModelResponseMessageRouter)
@@ -148,7 +149,6 @@ func enableHttpServer(opt *Options) {
 	r.POST("/proxy/58", SetBillingModelRequestRouter)
 	r.POST("/proxy/92", RemoteRebootRequestMessageRouter)
 	r.POST("/send-custom-message", SendCustomMessage)
-	r.GET("/", HelloWorldRouter)
 	host := opt.Host
 	port := strconv.Itoa(opt.HttpPort)
 	err := r.Run(host + ":" + port)
