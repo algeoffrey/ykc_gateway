@@ -78,6 +78,42 @@ func SendCustomMessage(c *gin.Context) {
 	c.JSON(200, gin.H{"status": "message sent"})
 }
 
+func StopCharging(c *gin.Context) {
+	clientID := c.DefaultQuery("clientID", "")
+	if clientID == "" {
+		c.JSON(400, gin.H{"error": "client ID is required"})
+		return
+	}
+	fmt.Println(clientID)
+	// // Retrieve the client connection using the GetClient function
+	conn, err := GetClient(clientID)
+
+	if err != nil {
+		c.JSON(404, gin.H{"error": "client not found"})
+		return
+	}
+
+	// // Define the message you want to send (in bytes format)
+	// message := []byte{0x5A, 0xA5, 0x11, 0x00, 0x82, 0x1F, 0x1E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xDC}
+	packet := []byte{0x5A, 0xA5, 0x08, 0x00, 0x84, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x8F}
+
+	// // Send the message to the client
+	err = sendMessage(conn, packet)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to send message"})
+		return
+	}
+	// // packet := []byte{
+	// // 	0x5A, 0xA5,
+	// // 	0x16, 0x00,
+	// // 	0x83, 0x00,
+	// // 	0x01, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x03, 0xE8, 0x03, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0xED,
+	// // }
+	// sendMessage(conn, packet)
+	// Respond to HTTP request
+	c.JSON(200, gin.H{"status": "message sent"})
+}
+
 func main() {
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors:   true,
@@ -153,6 +189,7 @@ func enableHttpServer(opt *Options) {
 	fmt.Println("Http ok")
 	r := gin.Default()
 	r.GET("/", SendCustomMessage)
+	r.GET("/stop", SendCustomMessage)
 	r.POST("/proxy/02", VerificationResponseRouter)
 	r.POST("/proxy/06", BillingModelVerificationResponseRouter)
 	r.POST("/proxy/0a", BillingModelResponseMessageRouter)
