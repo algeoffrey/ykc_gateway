@@ -32,6 +32,10 @@ func GetClient(id string) (net.Conn, error) {
 	}
 }
 
+func HelloWorldRouter(c *gin.Context) {
+	c.JSON(200, gin.H{"message": "Hello world"})
+}
+
 func SendCustomMessage(c *gin.Context) {
 	// Get the client ID from query parameter
 	// clientID := c.DefaultQuery("clientID", "")
@@ -80,7 +84,6 @@ func main() {
 			Endpoints: opt.Servers,
 		}
 		opt.MessageForwarder = f
-		break
 	case "nats":
 		servers := strings.Join(opt.Servers, ",")
 		f := &NatsForwarder{
@@ -90,11 +93,9 @@ func main() {
 		}
 		f.Connect()
 		opt.MessageForwarder = f
-		break
 	default:
 		f = nil
 		opt.MessageForwarder = f
-		break
 	}
 
 	go enableTcpServer(opt)
@@ -147,6 +148,7 @@ func enableHttpServer(opt *Options) {
 	r.POST("/proxy/58", SetBillingModelRequestRouter)
 	r.POST("/proxy/92", RemoteRebootRequestMessageRouter)
 	r.POST("/send-custom-message", SendCustomMessage)
+	r.GET("/", HelloWorldRouter)
 	host := opt.Host
 	port := strconv.Itoa(opt.HttpPort)
 	err := r.Run(host + ":" + port)
