@@ -150,7 +150,10 @@ func enableHttpServer(opt *Options) {
 	r.POST("/proxy/92", RemoteRebootRequestMessageRouter)
 	r.POST("/send-custom-message", SendCustomMessage)
 	host := opt.Host
+
 	port := strconv.Itoa(opt.HttpPort)
+	fmt.Println(port)
+	fmt.Println(host)
 	err := r.Run(host + ":" + port)
 	if err != nil {
 		panic(err)
