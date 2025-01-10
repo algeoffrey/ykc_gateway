@@ -34,29 +34,29 @@ func GetClient(id string) (net.Conn, error) {
 
 func SendCustomMessage(c *gin.Context) {
 	// Get the client ID from query parameter
-	clientID := c.DefaultQuery("clientID", "")
-	if clientID == "" {
-		c.JSON(400, gin.H{"error": "client ID is required"})
-		return
-	}
+	// clientID := c.DefaultQuery("clientID", "")
+	// if clientID == "" {
+	// 	c.JSON(400, gin.H{"error": "client ID is required"})
+	// 	return
+	// }
 
-	// Retrieve the client connection using the GetClient function
-	conn, err := GetClient(clientID)
+	// // Retrieve the client connection using the GetClient function
+	// conn, err := GetClient(clientID)
 
-	if err != nil {
-		c.JSON(404, gin.H{"error": "client not found"})
-		return
-	}
+	// if err != nil {
+	// 	c.JSON(404, gin.H{"error": "client not found"})
+	// 	return
+	// }
 
-	// Define the message you want to send (in bytes format)
-	message := []byte{0x5A, 0xA5, 0x11, 0x00, 0x82, 0x1F, 0x1E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xDC}
+	// // Define the message you want to send (in bytes format)
+	// message := []byte{0x5A, 0xA5, 0x11, 0x00, 0x82, 0x1F, 0x1E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xDC}
 
-	// Send the message to the client
-	err = sendMessage(conn, message)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to send message"})
-		return
-	}
+	// // Send the message to the client
+	// err = sendMessage(conn, message)
+	// if err != nil {
+	// 	c.JSON(500, gin.H{"error": "failed to send message"})
+	// 	return
+	// }
 
 	// Respond to HTTP request
 	c.JSON(200, gin.H{"status": "message sent"})
