@@ -42,7 +42,7 @@ func SendCustomMessage(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "client ID is required"})
 		return
 	}
-
+	fmt.Println(clientID)
 	// // Retrieve the client connection using the GetClient function
 	_, err := GetClient(clientID)
 
