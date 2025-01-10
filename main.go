@@ -189,7 +189,7 @@ func enableHttpServer(opt *Options) {
 	fmt.Println("Http ok")
 	r := gin.Default()
 	r.GET("/", SendCustomMessage)
-	r.GET("/stop", SendCustomMessage)
+	r.GET("/stop", StopCharging)
 	r.POST("/proxy/02", VerificationResponseRouter)
 	r.POST("/proxy/06", BillingModelVerificationResponseRouter)
 	r.POST("/proxy/0a", BillingModelResponseMessageRouter)
