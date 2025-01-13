@@ -753,7 +753,6 @@ func PackDeviceLoginMessage(buf []byte, header *dtos.Header) *dtos.DeviceLoginMe
 	return &dtos.DeviceLoginMessage{
 		Header:          header,
 		IMEI:            imei,
-		HexImei:         imeiHex,
 		DevicePortCount: devicePortCount,
 		HardwareVersion: hardwareVersion,
 		SoftwareVersion: softwareVersion,

@@ -9,5 +9,4 @@ type Header struct {
 type ClientInfo struct {
 	IPAddress string
 	IMEI      string
-	HexIMEI   []byte
 }
