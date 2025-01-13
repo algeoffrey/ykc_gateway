@@ -6,8 +6,10 @@ import (
 	"net"
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/services"
+	"ykc-proxy-server/utils"
 
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 func StartChargingRouter(c *gin.Context) {
@@ -202,4 +204,15 @@ func RemoteRebootRequestMessageHandler(c *gin.Context) {
 		}
 	}
 	c.JSON(200, gin.H{"message": "done"})
+}
+
+func SubmitFinalStatusHandler(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn,
+) {
+	data := services.SubmitFinalStatus(opt, buf, header, conn)
+	err := utils.SendMessage(conn, data)
+	if err != nil {
+		log.Errorf("Failed to send Submit Final Status response: %v", err)
+	} else {
+		log.Debug("Sent Submit Final Status response successfully")
+	}
 }

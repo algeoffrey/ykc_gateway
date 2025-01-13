@@ -455,7 +455,7 @@ func RemoteStopRouter(buf []byte, header *dtos.Header, conn net.Conn) {
 	}
 }
 
-func SubmitFinalStatusRouter(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) {
+func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) []byte {
 	msg := protocols.PackSubmitFinalStatusMessage(buf, header)
 	log.WithFields(log.Fields{
 		"port":             msg.Port,
@@ -477,12 +477,7 @@ func SubmitFinalStatusRouter(opt *dtos.Options, buf []byte, header *dtos.Header,
 	}
 
 	data := protocols.PackSubmitFinalStatusResponse(response)
-	_, err := conn.Write(data)
-	if err != nil {
-		log.Errorf("Failed to send Submit Final Status response: %v", err)
-	} else {
-		log.Debug("Sent Submit Final Status response successfully")
-	}
+	return data
 
 }
 

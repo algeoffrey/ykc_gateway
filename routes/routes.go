@@ -77,7 +77,7 @@ func Drain(opt *dtos.Options, conn net.Conn) error {
 	case protocols.RemoteStop:
 		services.RemoteStopRouter(buf, header, conn)
 	case protocols.SubmitFinalStatus:
-		services.SubmitFinalStatusRouter(opt, buf, header, conn)
+		handlers.SubmitFinalStatusHandler(opt, buf, header, conn)
 	default:
 		log.WithFields(log.Fields{
 			"frame_id": int(buf[5]),
