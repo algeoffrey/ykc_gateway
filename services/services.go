@@ -329,7 +329,7 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 	}).Debug("[81] Device Login message")
 
 	// Auto response preparation
-	heartbeatPeriod := 10 // Default heartbeat interval (30 seconds)
+	heartbeatPeriod := 10 // Default heartbeat interval (10 seconds)
 	if heartbeatPeriod < 10 || heartbeatPeriod > 250 {
 		heartbeatPeriod = 30 // Enforce valid range (10-250 seconds)
 	}

@@ -775,7 +775,7 @@ func PackDeviceLoginResponseMessage(msg *dtos.DeviceLoginResponseMessage) []byte
 	resp.Write([]byte{0x81})
 
 	// Time (7 bytes, BCD format)
-	resp.Write(utils.HexToBytes(msg.Time))
+	resp.Write([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
 
 	// Heartbeat Interval (1 byte)
 	resp.Write([]byte{byte(msg.HeartbeatPeriod)})
