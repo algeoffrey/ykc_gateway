@@ -1,143 +1,23 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
+	"ykc-proxy-server/dtos"
+	"ykc-proxy-server/forwarder"
+	"ykc-proxy-server/handlers"
+	"ykc-proxy-server/routes"
+	"ykc-proxy-server/utils"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
-
-var clients sync.Map
-
-func StoreClient(id string, conn net.Conn) {
-	clients.Store(id, conn)
-}
-
-func GetClient(id string) (net.Conn, error) {
-	value, ok := clients.Load(id)
-	if ok {
-		conn := value.(net.Conn)
-		return conn, nil
-	} else {
-		return nil, errors.New("client does not exist")
-	}
-}
-
-func HelloWorldRouter(c *gin.Context) {
-	c.JSON(200, gin.H{"message": "Hello world"})
-}
-
-func StartChargin(c *gin.Context) {
-	clientID := c.DefaultQuery("clientID", "")
-	if clientID == "" {
-		c.JSON(400, gin.H{"error": "client ID is required"})
-		return
-	}
-	fmt.Println(clientID)
-	// // Retrieve the client connection using the GetClient function
-	conn, err := GetClient(clientID)
-
-	if err != nil {
-		c.JSON(404, gin.H{"error": "client not found"})
-		return
-	}
-
-	// // Define the message you want to send (in bytes format)
-	// message := []byte{0x5A, 0xA5, 0x11, 0x00, 0x82, 0x1F, 0x1E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xDC}
-	// packet := []byte{
-	// 	0x5A, 0xA5,
-	// 	0x16, 0x00,
-	// 	0x83, 0x00,
-	// 	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, //emai
-	// 	0x01,                   //port
-	// 	0x01, 0x01, 0x01, 0x02, // order
-	// 	0x01,                   //mode
-	// 	0x01, 0x00, 0x00, 0x01, // time params
-	// 	0x00, 0x00, 0x00, 0x00, //balance
-	// 	0x03, 0xE8, 0x03, 0x00, 0x00, 0x03, 0xe8, 0x00, 0x00, 0xED,
-	// }
-	packet := []byte{
-		0x5A, 0xA5, // header
-		0x16, 0x00, // length
-		0x83, 0x00, // cmd
-		0x38, 0x36, 0x31, 0x34, 0x33, 0x35, 0x30, 0x37, 0x33, 0x39, 0x30, 0x30, 0x38, 0x34, 0x33, //emai,
-		0x01,                   //port
-		0x01, 0x01, 0x05, 0x01, // order
-		0x03,                   // payment mode
-		0x00, 0x00, 0x00, 0x00, // card number
-		0x05,                   // charging mode
-		0xE8, 0x03, 0x00, 0x00, // time number
-		0x64, 0x00, 0x00, 0x00, //balance
-		0xED, // checksum
-	}
-
-	// // Send the message to the client
-	err = sendMessage(conn, packet)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to send message"})
-		return
-	}
-	// // packet := []byte{
-	// // 	0x5A, 0xA5,
-	// // 	0x16, 0x00,
-	// // 	0x83, 0x00,
-	// // 	0x01, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x03, 0xE8, 0x03, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0xED,
-	// // }
-	// sendMessage(conn, packet)
-	// Respond to HTTP request
-	c.JSON(200, gin.H{"status": "message sent"})
-}
-
-func StopCharging(c *gin.Context) {
-	clientID := c.DefaultQuery("clientID", "")
-	if clientID == "" {
-		c.JSON(400, gin.H{"error": "client ID is required"})
-		return
-	}
-	fmt.Println(clientID)
-	// // Retrieve the client connection using the GetClient function
-	conn, err := GetClient(clientID)
-
-	if err != nil {
-		c.JSON(404, gin.H{"error": "client not found"})
-		return
-	}
-
-	// // Define the message you want to send (in bytes format)
-	// message := []byte{0x5A, 0xA5, 0x11, 0x00, 0x82, 0x1F, 0x1E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xDC}
-	packet := []byte{
-		0x5A, 0xA5,
-		0x08, 0x00,
-		0x84, 0x00,
-		0x01, 0x01, 0x05, 0x01,
-		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-		0x01, 0x01, 0x00, 0x00, 0x00, 0x8F}
-
-	// // Send the message to the client
-	err = sendMessage(conn, packet)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to send message"})
-		return
-	}
-	// // packet := []byte{
-	// // 	0x5A, 0xA5,
-	// // 	0x16, 0x00,
-	// // 	0x83, 0x00,
-	// // 	0x01, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x03, 0xE8, 0x03, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0xED,
-	// // }
-	// sendMessage(conn, packet)
-	// Respond to HTTP request
-	c.JSON(200, gin.H{"status": "message sent"})
-}
 
 func main() {
 	log.SetFormatter(&log.TextFormatter{
@@ -150,16 +30,16 @@ func main() {
 	opt := parseOptions()
 
 	//define message forwarder
-	var f MessageForwarder
+	var f forwarder.MessageForwarder
 	switch opt.MessagingServerType {
 	case "http":
-		f := &HTTPForwarder{
+		f := &forwarder.HTTPForwarder{
 			Endpoints: opt.Servers,
 		}
 		opt.MessageForwarder = f
 	case "nats":
 		servers := strings.Join(opt.Servers, ",")
-		f := &NatsForwarder{
+		f := &forwarder.NatsForwarder{
 			Servers:  servers,
 			Username: opt.Username,
 			Password: opt.Password,
@@ -181,7 +61,7 @@ func main() {
 	os.Exit(0)
 }
 
-func enableTcpServer(opt *Options) {
+func enableTcpServer(opt *dtos.Options) {
 	host := opt.Host
 	port := strconv.Itoa(opt.TcpPort)
 	addr, err := net.ResolveTCPAddr("tcp", host+":"+port)
@@ -204,25 +84,25 @@ func enableTcpServer(opt *Options) {
 			log.Error("error accepting connection:", err)
 			continue
 		}
-		StoreClient(conn.RemoteAddr().String(), conn)
+		utils.StoreClient(conn.RemoteAddr().String(), conn)
 		fmt.Println(conn.RemoteAddr().String())
 		go handleConnection(opt, conn)
 	}
 }
 
-func enableHttpServer(opt *Options) {
+func enableHttpServer(opt *dtos.Options) {
 	fmt.Println("Http ok")
 	r := gin.Default()
-	r.GET("/", StartChargin)
-	r.GET("/stop", StopCharging)
-	r.POST("/proxy/02", VerificationResponseRouter)
-	r.POST("/proxy/06", BillingModelVerificationResponseRouter)
-	r.POST("/proxy/0a", BillingModelResponseMessageRouter)
-	r.POST("/proxy/34", RemoteBootstrapRequestRouter)
-	r.POST("/proxy/36", RemoteShutdownRequestRouter)
-	r.POST("/proxy/40", TransactionRecordConfirmedRouter)
-	r.POST("/proxy/58", SetBillingModelRequestRouter)
-	r.POST("/proxy/92", RemoteRebootRequestMessageRouter)
+	r.GET("/start", handlers.StartChargingRouter)
+	r.GET("/stop", handlers.StopChargingRouter)
+	r.POST("/proxy/02", handlers.VerificationResponseRouter)
+	r.POST("/proxy/06", handlers.BillingModelVerificationResponseHandler)
+	r.POST("/proxy/0a", handlers.BillingModelResponseMessageHandler)
+	r.POST("/proxy/34", handlers.RemoteBootstrapRequestHandler)
+	r.POST("/proxy/36", handlers.RemoteShutdownRequestHandler)
+	r.POST("/proxy/40", handlers.TransactionRecordConfirmedHandler)
+	r.POST("/proxy/58", handlers.SetBillingModelRequestHandler)
+	r.POST("/proxy/92", handlers.RemoteRebootRequestMessageHandler)
 	host := opt.Host
 
 	port := strconv.Itoa(opt.HttpPort)
@@ -234,7 +114,7 @@ func enableHttpServer(opt *Options) {
 	}
 }
 
-func handleConnection(opt *Options, conn net.Conn) {
+func handleConnection(opt *dtos.Options, conn net.Conn) {
 	defer conn.Close()
 
 	log.WithFields(log.Fields{
@@ -243,124 +123,8 @@ func handleConnection(opt *Options, conn net.Conn) {
 
 	var connErr error
 	for connErr == nil {
-		connErr = drain(opt, conn)
+		connErr = routes.Drain(opt, conn)
 		time.Sleep(time.Millisecond * 1)
 	}
 
-}
-
-func drain(opt *Options, conn net.Conn) error {
-	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
-	if err != nil {
-		log.Error("Error reading: ", err)
-		return err
-	}
-
-	hex := BytesToHex(buf[:n])
-
-	encrypted := false
-	if buf[4] == byte(0x01) {
-		encrypted = true
-	}
-
-	length := buf[1]
-	seq := buf[3]<<8 | buf[2]
-
-	header := &Header{
-		Length:    int(length),
-		Seq:       int(seq),
-		Encrypted: encrypted,
-		FrameId:   strconv.Itoa(int(buf[4])),
-	}
-
-	log.WithFields(log.Fields{
-		"hex":       hex,
-		"encrypted": encrypted,
-		"length":    length,
-		"seq":       seq,
-		"frame_id":  int(buf[4]),
-	}).Info("Received message")
-
-	log.Debugf("buf[4] (frame_id in hex): %X", buf[4]) // Added for clarity
-
-	switch buf[4] {
-	case Verification:
-		VerificationRouter(opt, buf, hex, header, conn)
-	case Heartbeat:
-		HeartbeatRouter(buf, header, conn)
-		// 38 36 31 34 33 35 30 37 33 39 30 30 38 34 33
-		// packet := []byte{
-		// 	0x5a, 0xa5, 0x25, 0x00, 0x83, 0x00, 0x01, 0x38, 0x36,
-		// 	0x31, 0x34, 0x33, 0x35, 0x30, 0x37, 0x33, 0x39,
-		// 	0x30, 0x30, 0x37, 0x38, 0x34, 0x33, 0x01, 0x01, 0x00,
-		// 	0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01,
-		// 	0xE8, 0x03, 0x00, 0x00, 0x64, 0x00, 0x00, 0x12, 0x12,
-		// }
-		// packet := []byte{
-		// 	0x5A, 0xA5, 0x16, 0x00, 0x83, 0x01, 0x00, 0x02, 0x01,
-		// 	0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
-		// 	0x01, 0xE8, 0x03, 0x00, 0x00, 0x64, 0x00, 0x00,
-		// 	0x00, 0xED,
-		// }
-		// packet := []byte{
-		// 	0x5A, 0xA5, 0x17, 0x00, 0x83, 0x00, 0x01, 0x01, 0x01,
-		// 	0x00, 0x00, 0x09, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01, 0xE8,
-		// 	0x03, 0x00, 0x00, 0x64, 0x00, 0x00, 0xED,
-		// }
-		// packet := []byte{
-		// 	0x5A, 0xA5, 0x16, 0x00, 0x83, 0x00, 0x02, 0x01,
-		// 	0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
-		// 	0x01, 0xE8, 0x03, 0x00, 0x00, 0x64, 0x00, 0x00,
-		// 	0x00, 0xED,
-		// }
-
-	case BillingModelVerification:
-		BillingModelVerificationRouter(opt, hex, header, conn)
-	case BillingModelRequest:
-		BillingModelRequestMessageRouter(opt, hex, header, conn)
-	case OfflineDataReport:
-		OfflineDataReportMessageRouter(opt, buf, hex, header)
-	case ChargingFinished:
-		ChargingFinishedMessageRouter(opt, hex, header)
-	case RemoteBootstrapResponse:
-		RemoteBootstrapResponseRouter(opt, hex, header)
-	case RemoteShutdownResponse:
-		RemoteShutdownResponseRouter(opt, hex, header)
-	case SetBillingModelResponse:
-		SetBillingModelResponseMessageRouter(opt, hex, header)
-	case RemoteRebootResponse:
-		RemoteRebootResponseMessageRouter(opt, hex, header)
-	case TransactionRecord:
-		TransactionRecordMessageRouter(opt, buf, hex, header)
-	case DeviceLogin:
-		log.Debug("Handling Device Login...")
-		DeviceLoginRouter(opt, buf, header, conn)
-		// message := []byte{0x5A, 0xA5, 0x11, 0x00, 0x82, 0x1F, 0x1E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xDC}
-		// sendMessage(conn, message)
-	case RemoteStart:
-		RemoteStartRouter(buf, header, conn)
-	case RemoteStop:
-		RemoteStopRouter(buf, header, conn)
-	case SubmitFinalStatus:
-		SubmitFinalStatusRouter(opt, buf, header, conn)
-	default:
-		log.WithFields(log.Fields{
-			"frame_id": int(buf[5]),
-		}).Info("unsupported message")
-	}
-	return nil
-}
-func sendMessage(conn net.Conn, message []byte) error {
-	// Convert message to bytes or proper format
-	PrintHexAndByte(message)
-	// Send the message to the device
-	_, err := conn.Write(message)
-	if err != nil {
-		log.Error("Error sending message:", err)
-		return err
-	}
-
-	log.Infof("Sent message to %s: %s", conn.RemoteAddr().String(), message)
-	return nil
 }

@@ -7,6 +7,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"ykc-proxy-server/dtos"
+	"ykc-proxy-server/forwarder"
+	"ykc-proxy-server/services"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -17,25 +20,9 @@ const (
 	ACCEPT_MAX_SLEEP = 1 * time.Second
 )
 
-type Options struct {
-	Host                         string
-	TcpPort                      int
-	HttpPort                     int
-	AutoVerification             bool
-	AutoHeartbeatResponse        bool
-	AutoBillingModelVerify       bool
-	AutoTransactionRecordConfirm bool
-	MessagingServerType          string
-	Servers                      []string
-	Username                     string
-	Password                     string
-	MessageForwarder             MessageForwarder
-	PublishSubjectPrefix         string
-}
-
 type Server struct {
-	Opt       *Options
-	Forwarder *MessageForwarder
+	Opt       *dtos.Options
+	Forwarder *forwarder.MessageForwarder
 	Running   bool
 	Mu        sync.RWMutex
 	QuitCh    chan struct{}
@@ -71,11 +58,11 @@ func (s *Server) handleClient(conn net.Conn) {
 			cmd := data[4]
 
 			// Route to the appropriate handler
-			header := &Header{Seq: 0, Encrypted: false} // Add actual header parsing if needed
+			header := &dtos.Header{Seq: 0, Encrypted: false} // Add actual header parsing if needed
 			//hexData := BytesToHex(data)
 			switch cmd {
 			case 0x81:
-				DeviceLoginRouter(s.Opt, data, header, conn)
+				services.DeviceLoginRouter(s.Opt, data, header, conn)
 			default:
 				log.Warnf("Unsupported command: %x", cmd)
 			}
@@ -83,7 +70,7 @@ func (s *Server) handleClient(conn net.Conn) {
 	}
 }
 
-func NewServer(opts *Options) (*Server, error) {
+func NewServer(opts *dtos.Options) (*Server, error) {
 	s := &Server{
 		Opt: opts,
 	}
@@ -199,7 +186,7 @@ func (s *Server) startGoRoutine(f func()) bool {
 	return started
 }
 
-func parseOptions() *Options {
+func parseOptions() *dtos.Options {
 	host := flag.String("host", "0.0.0.0", "host")
 	tcpPort := flag.Int("tcpPort", 27600, "tcpPort")
 	httpPort := flag.Int("httpPort", 9556, "httpPort")
@@ -216,7 +203,7 @@ func parseOptions() *Options {
 	//splitting servers with comma
 	serversArr := strings.Split(*servers, ",")
 
-	opt := &Options{
+	opt := &dtos.Options{
 		Host:                         *host,
 		TcpPort:                      *tcpPort,
 		HttpPort:                     *httpPort,
