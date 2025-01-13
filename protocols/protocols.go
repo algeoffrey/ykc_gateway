@@ -913,7 +913,7 @@ func PackSubmitFinalStatusResponse(msg *dtos.SubmitFinalStatusResponse) []byte {
 	return resp.Bytes()
 }
 
-func PackStartCharging(IMEI string) []byte {
+func ParseStartChargingRequest(IMEI string) []byte {
 	var resp bytes.Buffer
 
 	imei := utils.ASCIIToHex(IMEI)
