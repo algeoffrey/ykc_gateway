@@ -6,6 +6,7 @@ import (
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/handlers"
 	"ykc-proxy-server/protocols"
+	"ykc-proxy-server/services"
 	"ykc-proxy-server/utils"
 
 	log "github.com/sirupsen/logrus"
@@ -74,10 +75,10 @@ func Drain(opt *dtos.Options, conn net.Conn) error {
 	// case protocols.TransactionRecord:
 	// 	services.TransactionRecordMessageRouter(opt, buf, hex, header)
 
-	// case protocols.RemoteStart:
-	// 	services.RemoteStartRouter(buf, header, conn)
-	// case protocols.RemoteStop:
-	// 	services.RemoteStopRouter(buf, header, conn)
+	case protocols.RemoteStart:
+		services.RemoteStartRouter(buf, header, conn)
+	case protocols.RemoteStop:
+		services.RemoteStopRouter(buf, header, conn)
 
 	default:
 		log.WithFields(log.Fields{
