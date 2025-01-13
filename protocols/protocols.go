@@ -775,14 +775,17 @@ func PackDeviceLoginResponseMessage(msg *dtos.DeviceLoginResponseMessage) []byte
 	// Command (81)
 	resp.Write([]byte{0x81})
 
-	// Time (7 bytes, BCD format)
-	resp.Write(utils.HexToBytes(msg.Time))
+	// Time (8 bytes, BCD format)
+	resp.Write([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
 
 	// Heartbeat Interval (1 byte)
 	resp.Write([]byte{byte(msg.HeartbeatPeriod)})
 
 	// Login Result (1 byte)
 	resp.Write([]byte{byte(msg.Result)})
+
+	// Checksum Result (1 byte)
+	resp.Write([]byte{0x7D})
 
 	return resp.Bytes()
 }
@@ -908,6 +911,28 @@ func PackSubmitFinalStatusResponse(msg *dtos.SubmitFinalStatusResponse) []byte {
 	resp.Write([]byte{msg.Result})
 	checksum := CalculateChecksum(resp.Bytes()[2:])
 	resp.Write([]byte{checksum})
+	return resp.Bytes()
+}
+
+func PackStartCharging(IMEI string) []byte {
+	var resp bytes.Buffer
+
+	utils.ASCIIToHex(IMEI)
+	// Frame Header (5AA5)
+	resp.Write([]byte{0x5A, 0xA5})
+
+	// Data Length (12 bytes)
+	resp.Write([]byte{0x16, 0x00})
+
+	// Command (84)
+	resp.Write([]byte{RemoteStart, 0x00})
+
+	resp.Write([]byte{
+		0x01, 0x01, 0x05, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+		0x01, 0x01, 0x00, 0x00, 0x00, 0x8F,
+	})
+
 	return resp.Bytes()
 }
 

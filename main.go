@@ -13,7 +13,6 @@ import (
 	"ykc-proxy-server/forwarder"
 	"ykc-proxy-server/handlers"
 	"ykc-proxy-server/routes"
-	"ykc-proxy-server/utils"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -84,7 +83,7 @@ func enableTcpServer(opt *dtos.Options) {
 			log.Error("error accepting connection:", err)
 			continue
 		}
-		utils.StoreClient(conn.RemoteAddr().String(), conn)
+
 		fmt.Println(conn.RemoteAddr().String())
 		go handleConnection(opt, conn)
 	}
