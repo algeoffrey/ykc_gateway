@@ -173,6 +173,7 @@ type ChargingFinishedMessage struct {
 type DeviceLoginMessage struct {
 	Header          *Header `json:"Header"`
 	IMEI            string  `json:"imei"`
+	HexImei         []byte  `json:"hexImei"`
 	DevicePortCount int     `json:"devicePortCount"`
 	HardwareVersion string  `json:"hardwareVersion"`
 	SoftwareVersion string  `json:"softwareVersion"`

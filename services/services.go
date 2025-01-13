@@ -310,7 +310,7 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 	// Unpack Device Login Message
 	msg := protocols.PackDeviceLoginMessage(buf, header)
 
-	utils.StoreClient(dtos.ClientInfo{IPAddress: conn.RemoteAddr().String(), IMEI: msg.IMEI}, conn)
+	utils.StoreClient(dtos.ClientInfo{IPAddress: conn.RemoteAddr().String(), HexIMEI: msg.HexImei, IMEI: msg.IMEI}, conn)
 	if msg == nil {
 		log.Error("Failed to parse Device Login message due to checksum mismatch or invalid buffer")
 		return nil, nil
