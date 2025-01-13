@@ -329,23 +329,23 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 	}).Debug("[81] Device Login message")
 
 	// Auto response preparation
-	heartbeatPeriod := 30 // Default heartbeat interval (30 seconds)
+	heartbeatPeriod := 10 // Default heartbeat interval (30 seconds)
 	if heartbeatPeriod < 10 || heartbeatPeriod > 250 {
 		heartbeatPeriod = 30 // Enforce valid range (10-250 seconds)
 	}
 
-	// resp := &DeviceLoginResponseMessage{
-	// 	Header: &Header{
-	// 		Seq:       header.Seq,
-	// 		Encrypted: false,
-	// 	},
-	// 	Time:            "00000000000000", // Reserved Time (BCD format)
-	// 	HeartbeatPeriod: heartbeatPeriod,  // Valid interval
-	// 	Result:          0x00,             // Login successful
-	// }
+	resp := &dtos.DeviceLoginResponseMessage{
+		Header: &dtos.Header{
+			Seq:       header.Seq,
+			Encrypted: false,
+		},
+		Time:            "0000000000000000", // Reserved Time (BCD format)
+		HeartbeatPeriod: heartbeatPeriod,    // Valid interval
+		Result:          0x00,               // Login successful
+	}
 
 	// // Pack the response message
-	// data := PackDeviceLoginResponseMessage(resp)
+	data := protocols.PackDeviceLoginResponseMessage(resp)
 	// PrintHexAndByte(data)
 	// // Send the response back to the device
 	// _, err := conn.Write(data)
@@ -354,16 +354,16 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 	// 	return
 	// }
 
-	message := []byte{
-		0x5A, 0xA5, // Frame Header
-		0x0C, 0x00, // Data Length
-		0x81, // Command
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x3C,       // Heathbeat
-		0xF0, 0x7D, // Footer
-	}
+	// message := []byte{
+	// 	0x5A, 0xA5, // Frame Header
+	// 	0x0C, 0x00, // Data Length
+	// 	0x81,                                           // Command
+	// 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //reserved
+	// 	0x3C,       // Heathbeat
+	// 	0xF0, 0x7D, // Footer
+	// }
 	log.Debug("Sent Device Login response successfully")
-	return msg, message
+	return msg, data
 
 }
 
