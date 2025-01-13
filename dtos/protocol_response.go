@@ -181,13 +181,6 @@ type DeviceLoginMessage struct {
 	LoginReason     int     `json:"loginReason"`
 }
 
-type DeviceLoginResponseMessage struct {
-	Header          *Header `json:"header"`
-	Time            string  `json:"time"`            // Reserved Time (BCD format)
-	HeartbeatPeriod int     `json:"heartbeatPeriod"` // Heartbeat interval in seconds
-	Result          byte    `json:"result"`          // Login Result (0x00 = success, 0x01 = illegal module, 0xF0 = protocol upgrade)
-}
-
 type RemoteStartMessage struct {
 	Header          *Header `json:"header"`
 	Port            int     `json:"port"`
@@ -197,14 +190,6 @@ type RemoteStartMessage struct {
 	ChargingMethod  int     `json:"chargingMethod"`
 	ChargingParam   uint32  `json:"chargingParam"`
 	AvailableAmount uint32  `json:"availableAmount"`
-}
-
-type RemoteStartResponseMessage struct {
-	Header      *Header `json:"header"`
-	Port        int     `json:"port"`
-	OrderNumber uint32  `json:"orderNumber"`
-	StartMethod int     `json:"startMethod"`
-	Result      int     `json:"result"`
 }
 
 type RemoteStopMessage struct {

@@ -774,7 +774,7 @@ func PackDeviceLoginResponseMessage(msg *dtos.DeviceLoginResponseMessage) []byte
 	// Command (81)
 	resp.Write([]byte{0x81})
 
-	// Time (7 bytes, BCD format)
+	// Time (8 bytes, BCD format)
 	resp.Write([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
 
 	// Heartbeat Interval (1 byte)
@@ -910,5 +910,20 @@ func PackSubmitFinalStatusResponse(msg *dtos.SubmitFinalStatusResponse) []byte {
 	resp.Write([]byte{msg.Result})
 	checksum := CalculateChecksum(resp.Bytes()[2:])
 	resp.Write([]byte{checksum})
+	return resp.Bytes()
+}
+
+func PackStartCharging(msg *dtos.DeviceLoginResponseMessage) []byte {
+	var resp bytes.Buffer
+
+	// Frame Header (5AA5)
+	resp.Write([]byte{0x5A, 0xA5})
+
+	// Data Length (12 bytes)
+	resp.Write([]byte{0x16, 0x00})
+
+	// Command (81)
+	resp.Write([]byte{RemoteStart})
+
 	return resp.Bytes()
 }

@@ -24,7 +24,7 @@ func Verification(opt *dtos.Options, buf []byte, hex []string, header *dtos.Head
 		"sim":              msg.Sim,
 		"operator":         msg.Operator,
 	}).Debug("[01] Verification message")
-	utils.StoreClient(msg.Id, conn)
+	utils.StoreClient(dtos.ClientInfo{IPAddress: msg.Id}, conn)
 
 	return msg
 
@@ -96,7 +96,7 @@ func BillingModelRequestMessage(opt *dtos.Options, hex []string, header *dtos.He
 
 }
 func SendBillingModelResponseMessage(req *dtos.BillingModelResponseMessage) error {
-	c, err := utils.GetClient(req.Id)
+	c, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func SendBillingModelResponseMessage(req *dtos.BillingModelResponseMessage) erro
 }
 
 func ResponseToBillingModelVerification(req *dtos.BillingModelVerificationResponseMessage) error {
-	c, err := utils.GetClient(req.Id)
+	c, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func ResponseToBillingModelVerification(req *dtos.BillingModelVerificationRespon
 }
 
 func ResponseToVerification(req *dtos.VerificationResponseMessage) error {
-	c, err := utils.GetClient(req.Id)
+	c, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func ResponseToVerification(req *dtos.VerificationResponseMessage) error {
 }
 
 func ResponseToHeartbeat(req *dtos.HeartbeatResponseMessage) error {
-	c, err := utils.GetClient(req.Id)
+	c, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func ResponseToHeartbeat(req *dtos.HeartbeatResponseMessage) error {
 }
 
 func SendRemoteBootstrapRequest(req *dtos.RemoteBootstrapRequestMessage) error {
-	c, err := utils.GetClient(req.Id)
+	c, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -310,6 +310,7 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 	// Unpack Device Login Message
 	msg := protocols.PackDeviceLoginMessage(buf, header)
 
+	utils.StoreClient(dtos.ClientInfo{IPAddress: conn.RemoteAddr().String(), IMEI: msg.IMEI}, conn)
 	if msg == nil {
 		log.Error("Failed to parse Device Login message due to checksum mismatch or invalid buffer")
 		return nil, nil
@@ -339,29 +340,13 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 			Seq:       header.Seq,
 			Encrypted: false,
 		},
-		Time:            "0000000000000000", // Reserved Time (BCD format)
-		HeartbeatPeriod: heartbeatPeriod,    // Valid interval
-		Result:          0xF0,               // Login successful
+		HeartbeatPeriod: heartbeatPeriod, // Valid interval
+		Result:          0xF0,            // Login successful
 	}
 
 	// // Pack the response message
 	data := protocols.PackDeviceLoginResponseMessage(resp)
-	utils.PrintHexAndByte(data)
-	// // Send the response back to the device
-	// _, err := conn.Write(data)
-	// if err != nil {
-	// 	log.Errorf("Failed to send Device Login response: %v", err)
-	// 	return
-	// }
 
-	// message := []byte{
-	// 	0x5A, 0xA5, // Frame Header
-	// 	0x0C, 0x00, // Data Length
-	// 	0x81,                                           // Command
-	// 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //reserved
-	// 	0x3C,       // Heathbeat
-	// 	0xF0, 0x7D, // Footer
-	// }
 	log.Debug("Sent Device Login response successfully")
 	return msg, data
 
@@ -448,7 +433,7 @@ func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn 
 }
 
 func SendRemoteShutdownRequest(req *dtos.RemoteShutdownRequestMessage) error {
-	c, err := utils.GetClient(req.Id)
+	c, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -462,7 +447,7 @@ func SendRemoteShutdownRequest(req *dtos.RemoteShutdownRequestMessage) error {
 }
 
 func SendTransactionRecordConfirmed(req *dtos.TransactionRecordConfirmedMessage) error {
-	c, err := utils.GetClient(req.Id)
+	c, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -476,7 +461,7 @@ func SendTransactionRecordConfirmed(req *dtos.TransactionRecordConfirmedMessage)
 }
 
 func SendRemoteRebootRequest(req *dtos.RemoteRebootRequestMessage) error {
-	c, err := utils.GetClient(req.Id)
+	c, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -490,7 +475,7 @@ func SendRemoteRebootRequest(req *dtos.RemoteRebootRequestMessage) error {
 }
 
 func SendSetBillingModelRequestMessage(req *dtos.SetBillingModelRequestMessage) error {
-	c, err := utils.GetClient(req.Id)
+	c, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}

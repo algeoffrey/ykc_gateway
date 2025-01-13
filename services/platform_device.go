@@ -5,11 +5,11 @@ import (
 	"ykc-proxy-server/utils"
 )
 
-func StartCharging(clientID string) error {
+func StartCharging(IPAddress string) error {
 
-	fmt.Println(clientID)
+	fmt.Println(IPAddress)
 	// // Retrieve the client connection using the GetClient function
-	conn, err := utils.GetClient(clientID)
+	conn, err := utils.GetClientByIPAddress(IPAddress)
 
 	if err != nil {
 		return err
@@ -39,9 +39,9 @@ func StartCharging(clientID string) error {
 	return nil
 }
 
-func StopCharging(clientID string) error {
-	fmt.Println(clientID)
-	conn, err := utils.GetClient(clientID)
+func StopCharging(IPAddress string) error {
+	fmt.Println(IPAddress)
+	conn, err := utils.GetClientByIPAddress(IPAddress)
 	if err != nil {
 		return err
 	}

@@ -6,3 +6,7 @@ type Header struct {
 	Encrypted bool   `json:"encrypted"`
 	FrameId   string `json:"frameId"`
 }
+type ClientInfo struct {
+	IPAddress string
+	IMEI      string
+}
