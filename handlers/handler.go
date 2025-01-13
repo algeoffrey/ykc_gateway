@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net"
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/services"
@@ -13,7 +12,6 @@ import (
 )
 
 func StartChargingRouter(c *gin.Context) {
-	fmt.Println("Charging start")
 	clientID := c.DefaultQuery("clientID", "")
 	if clientID == "" {
 		c.JSON(400, gin.H{"error": "client ID is required"})
@@ -29,7 +27,6 @@ func StartChargingRouter(c *gin.Context) {
 
 func StopChargingRouter(c *gin.Context) {
 
-	fmt.Println("Charging stop")
 	clientID := c.DefaultQuery("clientID", "")
 	if clientID == "" {
 		c.JSON(400, gin.H{"error": "client ID is required"})
