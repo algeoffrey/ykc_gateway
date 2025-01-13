@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Drain(opt *dtos.Options, conn net.Conn) error {
+func HandleChargingProtocol(opt *dtos.Options, conn net.Conn) error {
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
 	if err != nil {
@@ -27,7 +27,7 @@ func Drain(opt *dtos.Options, conn net.Conn) error {
 	}
 
 	length := buf[1]
-	seq := buf[3]<<8 | buf[2]
+	seq := buf[2]
 
 	header := &dtos.Header{
 		Length:    int(length),

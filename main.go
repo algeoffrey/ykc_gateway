@@ -123,7 +123,7 @@ func handleConnection(opt *dtos.Options, conn net.Conn) {
 
 	var connErr error
 	for connErr == nil {
-		connErr = routes.Drain(opt, conn)
+		connErr = routes.HandleChargingProtocol(opt, conn)
 		time.Sleep(time.Millisecond * 1)
 	}
 
