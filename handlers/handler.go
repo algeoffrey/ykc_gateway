@@ -216,3 +216,22 @@ func SubmitFinalStatusHandler(opt *dtos.Options, buf []byte, header *dtos.Header
 		log.Debug("Sent Submit Final Status response successfully")
 	}
 }
+
+func DeviceLoginHandler(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn,
+) {
+	msg, resMessage := services.DeviceLogin(opt, buf, header, conn)
+	// Forward the Device Login message to an external system (optional)
+	if opt.MessageForwarder != nil {
+		jsonMsg, err := json.Marshal(msg)
+		if err != nil {
+			log.Errorf("Failed to marshal Device Login message: %v", err)
+			return
+		}
+		err = opt.MessageForwarder.Publish("81", jsonMsg)
+		if err != nil {
+			log.Errorf("Failed to publish Device Login message: %v", err)
+		}
+	}
+
+	utils.SendMessage(conn, resMessage)
+}

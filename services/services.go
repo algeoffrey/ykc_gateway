@@ -306,13 +306,13 @@ func ChargingFinishedMessageRouter(opt *dtos.Options, hex []string, header *dtos
 	}
 }
 
-func DeviceLoginRouter(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) {
+func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) (*dtos.DeviceLoginMessage, []byte) {
 	// Unpack Device Login Message
 	msg := protocols.PackDeviceLoginMessage(buf, header)
 
 	if msg == nil {
 		log.Error("Failed to parse Device Login message due to checksum mismatch or invalid buffer")
-		return
+		return nil, nil
 	}
 
 	log.Debugf("Raw Buffer: %x", buf)
@@ -372,23 +372,9 @@ func DeviceLoginRouter(opt *dtos.Options, buf []byte, header *dtos.Header, conn 
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Data
 		0xF0, 0x7D, // Footer
 	}
-
-	utils.PrintHexAndByte(message)
-	utils.SendMessage(conn, message)
 	log.Debug("Sent Device Login response successfully")
+	return msg, message
 
-	// Forward the Device Login message to an external system (optional)
-	if opt.MessageForwarder != nil {
-		jsonMsg, err := json.Marshal(msg)
-		if err != nil {
-			log.Errorf("Failed to marshal Device Login message: %v", err)
-			return
-		}
-		err = opt.MessageForwarder.Publish("81", jsonMsg)
-		if err != nil {
-			log.Errorf("Failed to publish Device Login message: %v", err)
-		}
-	}
 }
 
 func RemoteStartRouter(buf []byte, header *dtos.Header, conn net.Conn) {

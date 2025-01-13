@@ -62,7 +62,7 @@ func (s *Server) handleClient(conn net.Conn) {
 			//hexData := BytesToHex(data)
 			switch cmd {
 			case 0x81:
-				services.DeviceLoginRouter(s.Opt, data, header, conn)
+				services.DeviceLogin(s.Opt, data, header, conn)
 			default:
 				log.Warnf("Unsupported command: %x", cmd)
 			}

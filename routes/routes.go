@@ -6,7 +6,6 @@ import (
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/handlers"
 	"ykc-proxy-server/protocols"
-	"ykc-proxy-server/services"
 	"ykc-proxy-server/utils"
 
 	log "github.com/sirupsen/logrus"
@@ -52,32 +51,34 @@ func Drain(opt *dtos.Options, conn net.Conn) error {
 		handlers.VerificationHandler(opt, buf, hex, header, conn)
 	case protocols.Heartbeat:
 		handlers.HeartbeatHandler(buf, header, conn)
-	case protocols.BillingModelVerification:
-		handlers.BillingModelVerificationHandler(opt, hex, header, conn)
-	case protocols.BillingModelRequest:
-		handlers.BillingModelRequestMessageHandler(opt, hex, header, conn)
-	case protocols.OfflineDataReport:
-		services.OfflineDataReportMessageRouter(opt, buf, hex, header)
-	case protocols.ChargingFinished:
-		services.ChargingFinishedMessageRouter(opt, hex, header)
-	case protocols.RemoteBootstrapResponse:
-		services.RemoteBootstrapResponseRouter(opt, hex, header)
-	case protocols.RemoteShutdownResponse:
-		services.RemoteShutdownResponseRouter(opt, hex, header)
-	case protocols.SetBillingModelResponse:
-		services.SetBillingModelResponseMessageRouter(opt, hex, header)
-	case protocols.RemoteRebootResponse:
-		services.RemoteRebootResponseMessageRouter(opt, hex, header)
-	case protocols.TransactionRecord:
-		services.TransactionRecordMessageRouter(opt, buf, hex, header)
 	case protocols.DeviceLogin:
-		services.DeviceLoginRouter(opt, buf, header, conn)
-	case protocols.RemoteStart:
-		services.RemoteStartRouter(buf, header, conn)
-	case protocols.RemoteStop:
-		services.RemoteStopRouter(buf, header, conn)
+		handlers.DeviceLoginHandler(opt, buf, header, conn)
 	case protocols.SubmitFinalStatus:
 		handlers.SubmitFinalStatusHandler(opt, buf, header, conn)
+	// case protocols.BillingModelVerification:
+	// 	handlers.BillingModelVerificationHandler(opt, hex, header, conn)
+	// case protocols.BillingModelRequest:
+	// 	handlers.BillingModelRequestMessageHandler(opt, hex, header, conn)
+	// case protocols.OfflineDataReport:
+	// 	services.OfflineDataReportMessageRouter(opt, buf, hex, header)
+	// case protocols.ChargingFinished:
+	// 	services.ChargingFinishedMessageRouter(opt, hex, header)
+	// case protocols.RemoteBootstrapResponse:
+	// 	services.RemoteBootstrapResponseRouter(opt, hex, header)
+	// case protocols.RemoteShutdownResponse:
+	// 	services.RemoteShutdownResponseRouter(opt, hex, header)
+	// case protocols.SetBillingModelResponse:
+	// 	services.SetBillingModelResponseMessageRouter(opt, hex, header)
+	// case protocols.RemoteRebootResponse:
+	// 	services.RemoteRebootResponseMessageRouter(opt, hex, header)
+	// case protocols.TransactionRecord:
+	// 	services.TransactionRecordMessageRouter(opt, buf, hex, header)
+
+	// case protocols.RemoteStart:
+	// 	services.RemoteStartRouter(buf, header, conn)
+	// case protocols.RemoteStop:
+	// 	services.RemoteStopRouter(buf, header, conn)
+
 	default:
 		log.WithFields(log.Fields{
 			"frame_id": int(buf[5]),
