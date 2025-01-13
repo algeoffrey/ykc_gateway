@@ -240,3 +240,19 @@ type SubmitFinalStatusResponse struct {
 	Header *Header `json:"header"`
 	Result byte    `json:"result"`
 }
+
+type ChargingPortDataMessage struct {
+	Header          *Header `json:"header"`
+	Reserved        byte    `json:"reserved"`
+	PortCount       byte    `json:"portCount"`
+	Voltage         uint16  `json:"voltage"`
+	Temperature     byte    `json:"temperature"`
+	ActivePort      byte    `json:"activePort"`
+	CurrentTier     byte    `json:"currentTier"`
+	CurrentRate     uint16  `json:"currentRate"`
+	CurrentPower    uint16  `json:"currrentPower"`
+	UsageTime       uint32  `json:"usageTime"`
+	UsedAmount      uint16  `json:"usedAmount"`
+	EnergyUsed      uint32  `json:"energyUsed"`
+	PortTemperature byte    `json:"portTemperature"`
+}

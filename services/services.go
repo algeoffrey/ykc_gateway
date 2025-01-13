@@ -447,6 +447,34 @@ func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn 
 
 }
 
+func ChargingPortData(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) *dtos.ChargingPortDataMessage {
+
+	msg := protocols.PackChargingPortDataMessage(buf, header)
+	if msg == nil {
+		log.Error("Failed to parse Charging Port Data message")
+		return nil
+	}
+
+	log.WithFields(log.Fields{
+		"header":          msg.Header,
+		"reserved":        msg.Reserved,
+		"portCount":       msg.PortCount,
+		"voltage":         msg.Voltage,
+		"temperature":     msg.Temperature,
+		"activePort":      msg.ActivePort,
+		"currentTier":     msg.CurrentTier,
+		"currentRate":     msg.CurrentRate,
+		"currentPower":    msg.CurrentPower,
+		"usageTime":       msg.UsageTime,
+		"usedAmount":      msg.UsedAmount,
+		"energyUsed":      msg.EnergyUsed,
+		"portTemperature": msg.PortTemperature,
+	}).Debug("[88] Charging Port Data message parsed successfully")
+
+	return msg
+}
+
+
 func SendRemoteShutdownRequest(req *dtos.RemoteShutdownRequestMessage) error {
 	c, err := utils.GetClient(req.Id)
 	if err != nil {
