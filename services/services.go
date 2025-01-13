@@ -359,7 +359,7 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 		0x0C, 0x00, // Data Length
 		0x81, // Command
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x0A,       // Heathbeat
+		0x3C,       // Heathbeat
 		0xF0, 0x7D, // Footer
 	}
 	log.Debug("Sent Device Login response successfully")
