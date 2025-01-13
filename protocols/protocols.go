@@ -783,6 +783,9 @@ func PackDeviceLoginResponseMessage(msg *dtos.DeviceLoginResponseMessage) []byte
 	// Login Result (1 byte)
 	resp.Write([]byte{byte(msg.Result)})
 
+	// Checksum Result (1 byte)
+	resp.Write([]byte{0x7D})
+
 	return resp.Bytes()
 }
 

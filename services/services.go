@@ -341,12 +341,12 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 		},
 		Time:            "0000000000000000", // Reserved Time (BCD format)
 		HeartbeatPeriod: heartbeatPeriod,    // Valid interval
-		Result:          0x00,               // Login successful
+		Result:          0xF0,               // Login successful
 	}
 
 	// // Pack the response message
 	data := protocols.PackDeviceLoginResponseMessage(resp)
-	// PrintHexAndByte(data)
+	utils.PrintHexAndByte(data)
 	// // Send the response back to the device
 	// _, err := conn.Write(data)
 	// if err != nil {
