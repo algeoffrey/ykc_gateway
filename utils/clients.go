@@ -26,15 +26,17 @@ func GetClient(info dtos.ClientInfo) (net.Conn, error) {
 	}
 }
 
-func GetClientByIPAddress(ipAddress string) (net.Conn, error) {
+func GetClientByIPAddress(ipAddress string) (net.Conn, string, error) {
 	var foundConn net.Conn
 	var found bool
+	var imei string
 
 	clients.Range(func(key, value interface{}) bool {
 		clientInfo := key.(dtos.ClientInfo) // Cast the key to ClientInfo
 		fmt.Println(clientInfo)
 		if clientInfo.IPAddress == ipAddress {
 			foundConn = value.(net.Conn) // Cast the value to net.Conn
+			imei = clientInfo.IMEI
 			found = true
 			return false // Stop iteration as we found the client
 		}
@@ -42,9 +44,9 @@ func GetClientByIPAddress(ipAddress string) (net.Conn, error) {
 	})
 
 	if found {
-		return foundConn, nil
+		return foundConn, imei, nil
 	}
-	return nil, errors.New("client does not exist")
+	return nil, "", errors.New("client does not exist")
 }
 
 func SendMessage(conn net.Conn, message []byte) error {

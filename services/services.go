@@ -96,7 +96,7 @@ func BillingModelRequestMessage(opt *dtos.Options, hex []string, header *dtos.He
 
 }
 func SendBillingModelResponseMessage(req *dtos.BillingModelResponseMessage) error {
-	c, err := utils.GetClientByIPAddress(req.Id)
+	c, _, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func SendBillingModelResponseMessage(req *dtos.BillingModelResponseMessage) erro
 }
 
 func ResponseToBillingModelVerification(req *dtos.BillingModelVerificationResponseMessage) error {
-	c, err := utils.GetClientByIPAddress(req.Id)
+	c, _, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func ResponseToBillingModelVerification(req *dtos.BillingModelVerificationRespon
 }
 
 func ResponseToVerification(req *dtos.VerificationResponseMessage) error {
-	c, err := utils.GetClientByIPAddress(req.Id)
+	c, _, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func ResponseToVerification(req *dtos.VerificationResponseMessage) error {
 }
 
 func ResponseToHeartbeat(req *dtos.HeartbeatResponseMessage) error {
-	c, err := utils.GetClientByIPAddress(req.Id)
+	c, _, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func ResponseToHeartbeat(req *dtos.HeartbeatResponseMessage) error {
 }
 
 func SendRemoteBootstrapRequest(req *dtos.RemoteBootstrapRequestMessage) error {
-	c, err := utils.GetClientByIPAddress(req.Id)
+	c, _, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -433,7 +433,7 @@ func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn 
 }
 
 func SendRemoteShutdownRequest(req *dtos.RemoteShutdownRequestMessage) error {
-	c, err := utils.GetClientByIPAddress(req.Id)
+	c, _, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -447,7 +447,7 @@ func SendRemoteShutdownRequest(req *dtos.RemoteShutdownRequestMessage) error {
 }
 
 func SendTransactionRecordConfirmed(req *dtos.TransactionRecordConfirmedMessage) error {
-	c, err := utils.GetClientByIPAddress(req.Id)
+	c, _, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -461,7 +461,7 @@ func SendTransactionRecordConfirmed(req *dtos.TransactionRecordConfirmedMessage)
 }
 
 func SendRemoteRebootRequest(req *dtos.RemoteRebootRequestMessage) error {
-	c, err := utils.GetClientByIPAddress(req.Id)
+	c, _, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}
@@ -475,7 +475,7 @@ func SendRemoteRebootRequest(req *dtos.RemoteRebootRequestMessage) error {
 }
 
 func SendSetBillingModelRequestMessage(req *dtos.SetBillingModelRequestMessage) error {
-	c, err := utils.GetClientByIPAddress(req.Id)
+	c, _, err := utils.GetClientByIPAddress(req.Id)
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -124,8 +125,16 @@ func HexToASCII(hexStr string) string {
 	return string(decoded)
 }
 
-func ASCIIToHex(ascii string) string {
-	return hex.EncodeToString([]byte(ascii))
+func ASCIIToHex(ascii string) []byte {
+	hexString := hex.EncodeToString([]byte(ascii))
+	hexBytes := make([]byte, len(hexString)/2)
+	for i := 0; i < len(hexBytes); i++ {
+		hexPair := hexString[i*2 : i*2+2]
+		value, _ := strconv.ParseUint(hexPair, 16, 8) // Parse each hex pair
+		hexBytes[i] = byte(value)
+	}
+
+	return hexBytes
 }
 
 func ModbusCRC(pData []byte) []byte {
