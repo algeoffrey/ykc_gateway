@@ -6,7 +6,6 @@ import (
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/handlers"
 	"ykc-proxy-server/protocols"
-	"ykc-proxy-server/services"
 	"ykc-proxy-server/utils"
 
 	log "github.com/sirupsen/logrus"
@@ -56,6 +55,10 @@ func Drain(opt *dtos.Options, conn net.Conn) error {
 		handlers.DeviceLoginHandler(opt, buf, header, conn)
 	case protocols.SubmitFinalStatus:
 		handlers.SubmitFinalStatusHandler(opt, buf, header, conn)
+	case protocols.RemoteStart:
+		handlers.RemoteStartHandler(buf, header, conn)
+	case protocols.RemoteStop:
+		handlers.RemoteStopHandler(buf, header, conn)
 	// case protocols.BillingModelVerification:
 	// 	handlers.BillingModelVerificationHandler(opt, hex, header, conn)
 	// case protocols.BillingModelRequest:
@@ -74,11 +77,6 @@ func Drain(opt *dtos.Options, conn net.Conn) error {
 	// 	services.RemoteRebootResponseMessageRouter(opt, hex, header)
 	// case protocols.TransactionRecord:
 	// 	services.TransactionRecordMessageRouter(opt, buf, hex, header)
-
-	case protocols.RemoteStart:
-		services.RemoteStartRouter(buf, header, conn)
-	case protocols.RemoteStop:
-		services.RemoteStopRouter(buf, header, conn)
 
 	default:
 		log.WithFields(log.Fields{

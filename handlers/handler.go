@@ -221,17 +221,45 @@ func DeviceLoginHandler(opt *dtos.Options, buf []byte, header *dtos.Header, conn
 ) {
 	msg, resMessage := services.DeviceLogin(opt, buf, header, conn)
 	// Forward the Device Login message to an external system (optional)
-	if opt.MessageForwarder != nil {
-		jsonMsg, err := json.Marshal(msg)
-		if err != nil {
-			log.Errorf("Failed to marshal Device Login message: %v", err)
-			return
+	if msg != nil {
+		if opt.MessageForwarder != nil {
+			jsonMsg, err := json.Marshal(msg)
+			if err != nil {
+				log.Errorf("Failed to marshal Device Login message: %v", err)
+				return
+			}
+			err = opt.MessageForwarder.Publish("81", jsonMsg)
+			if err != nil {
+				log.Errorf("Failed to publish Device Login message: %v", err)
+			}
 		}
-		err = opt.MessageForwarder.Publish("81", jsonMsg)
+	}
+	if resMessage != nil {
+		utils.SendMessage(conn, resMessage)
+	}
+}
+
+func RemoteStartHandler(buf []byte, header *dtos.Header, conn net.Conn) {
+	data := services.RemoteStart(buf, header, conn)
+	if data != nil {
+		err := utils.SendMessage(conn, data)
 		if err != nil {
-			log.Errorf("Failed to publish Device Login message: %v", err)
+			log.Errorf("Failed to send Remote Start response: %v", err)
+		} else {
+			log.Debug("Sent Remote Start response successfully")
 		}
 	}
 
-	utils.SendMessage(conn, resMessage)
+}
+
+func RemoteStopHandler(buf []byte, header *dtos.Header, conn net.Conn) {
+	data := services.RemoteStop(buf, header, conn)
+	if data != nil {
+		err := utils.SendMessage(conn, data)
+		if err != nil {
+			log.Errorf("Failed to send Remote Start response: %v", err)
+		} else {
+			log.Debug("Sent Remote Start response successfully")
+		}
+	}
 }
