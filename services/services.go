@@ -317,17 +317,6 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 
 	log.Debugf("Raw Buffer: %x", buf)
 
-	// Debug: Log the parsed message
-	log.WithFields(log.Fields{
-		"imei":            msg.IMEI,
-		"devicePortCount": msg.DevicePortCount,
-		"hardwareVersion": msg.HardwareVersion,
-		"softwareVersion": msg.SoftwareVersion,
-		"ccid":            msg.CCID,
-		"signalValue":     msg.SignalValue,
-		"loginReason":     msg.LoginReason,
-	}).Info("Parsed Device Login Message")
-
 	// Log the extracted details
 	log.WithFields(log.Fields{
 		"imei":            msg.IMEI,
@@ -368,8 +357,9 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 	message := []byte{
 		0x5A, 0xA5, // Frame Header
 		0x0C, 0x00, // Data Length
-		0x81,                                                 // Command
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Data
+		0x81,                                     // Command
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // TIME
+		0x0A,       // Heartbeat duration
 		0xF0, 0x7D, // Footer
 	}
 	log.Debug("Sent Device Login response successfully")
