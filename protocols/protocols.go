@@ -916,7 +916,7 @@ func PackSubmitFinalStatusResponse(msg *dtos.SubmitFinalStatusResponse) []byte {
 func PackStartCharging(IMEI string) []byte {
 	var resp bytes.Buffer
 
-	utils.ASCIIToHex(IMEI)
+	imei := utils.ASCIIToHex(IMEI)
 	// Frame Header (5AA5)
 	resp.Write([]byte{0x5A, 0xA5})
 
@@ -925,7 +925,7 @@ func PackStartCharging(IMEI string) []byte {
 
 	// Command (84)
 	resp.Write([]byte{RemoteStart, 0x00})
-
+	resp.Write(imei)
 	resp.Write([]byte{
 		0x01, 0x01, 0x05, 0x01,
 		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
