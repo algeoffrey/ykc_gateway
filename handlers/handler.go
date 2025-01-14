@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/services"
@@ -210,6 +211,8 @@ func SubmitFinalStatusHandler(opt *dtos.Options, buf []byte, header *dtos.Header
 	if err != nil {
 		log.Errorf("Failed to send Submit Final Status response: %v", err)
 	} else {
+		IPAddress := conn.RemoteAddr().String()
+		fmt.Println(IPAddress)
 		log.Debug("Sent Submit Final Status response successfully")
 	}
 }
