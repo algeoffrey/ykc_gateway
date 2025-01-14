@@ -870,7 +870,7 @@ func ParseStartChargingRequest(IMEI string) []byte {
 	// resp.Write(imei)
 
 	//PORT
-	resp.Write([]byte{0x01})
+	resp.Write([]byte{0x02})
 
 	resp.Write([]byte{
 		0x00, 0x12, 0x34, 0x56, // order number (00123456)
@@ -902,7 +902,7 @@ func ParseStopChargingRequest(IMEI string) []byte {
 	// resp.Write(imei)
 
 	//PORT
-	resp.Write([]byte{0x01})
+	resp.Write([]byte{0x02})
 
 	resp.Write([]byte{
 		0x00, 0x12, 0x34, 0x56, // order number (00123456)
