@@ -15,7 +15,7 @@ func StartCharging(IPAddress string) error {
 	if err != nil {
 		return err
 	}
-	packet := protocols.PackStartCharging(imei)
+	packet := protocols.ParseStartChargingRequest(imei)
 
 	// packet := []byte{
 	// 	0x5A, 0xA5, // header

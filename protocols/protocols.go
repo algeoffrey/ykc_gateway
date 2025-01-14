@@ -914,7 +914,7 @@ func PackSubmitFinalStatusResponse(msg *dtos.SubmitFinalStatusResponse) []byte {
 	return resp.Bytes()
 }
 
-func PackStartCharging(IMEI string) []byte {
+func ParseStartChargingRequest(IMEI string) []byte {
 	var resp bytes.Buffer
 
 	imei := utils.ASCIIToHex(IMEI)
@@ -924,13 +924,23 @@ func PackStartCharging(IMEI string) []byte {
 	// Data Length (12 bytes)
 	resp.Write([]byte{0x16, 0x00})
 
-	// Command (84)
+	// Command (83)
 	resp.Write([]byte{RemoteStart, 0x00})
+
+	//IMEI
 	resp.Write(imei)
+
+	//PORT
+	resp.Write([]byte{0x01})
+
 	resp.Write([]byte{
-		0x01, 0x01, 0x05, 0x01,
-		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-		0x01, 0x01, 0x00, 0x00, 0x00, 0x8F,
+		0x12, 0x34, 0x56, 0x00, // order number (123456)
+		0x01,                   // payment
+		0x01, 0x01, 0x01, 0x01, // card number
+		0x03,                   // chargin mode
+		0x3C, 0x00, 0x00, 0x00, // time based (60 seconds)
+		0x01, 0x01, 0x01, 0x01, // available amount
+		0xED, // checksum
 	})
 
 	return resp.Bytes()
