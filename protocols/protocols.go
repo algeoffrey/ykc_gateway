@@ -797,7 +797,7 @@ func PackRemoteStartMessage(buf []byte, header *dtos.Header) *dtos.RemoteStartMe
 	return &dtos.RemoteStartMessage{
 		Header:      header,
 		Port:        int(payload[0]),
-		OrderNumber: fmt.Sprintf("%02x%02x%02x%02x", payload[1], payload[2], payload[3], payload[4]),
+		OrderNumber: utils.HexToASCII(fmt.Sprintf("%02x%02x%02x%02x", payload[1], payload[2], payload[3], payload[4])),
 		StartMode:   int(payload[5]),
 		StartResult: int(payload[6]),
 	}
@@ -820,7 +820,7 @@ func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitF
 	return &dtos.SubmitFinalStatusMessage{
 		Header:           header,
 		Port:             payload[0],
-		OrderNumber:      fmt.Sprintf("%02x%02x%02x%02x", payload[1], payload[2], payload[3], payload[4]),
+		OrderNumber:      utils.HexToASCII(fmt.Sprintf("%02x%02x%02x%02x", payload[1], payload[2], payload[3], payload[4])),
 		ChargingTime:     uint32(payload[8])<<24 | uint32(payload[6])<<16 | uint32(payload[5])<<8 | uint32(payload[4]),
 		ElectricityUsage: uint32(payload[12])<<24 | uint32(payload[11])<<16 | uint32(payload[10])<<8 | uint32(payload[9]),
 		UsageCost:        uint32(payload[13])<<24 | uint32(payload[14])<<16 | uint32(payload[15])<<8 | uint32(payload[16]),
@@ -853,7 +853,7 @@ func PackSubmitFinalStatusResponse() []byte {
 	return resp.Bytes()
 }
 
-func ParseStartChargingRequest(IMEI string, hexPort []byte) []byte {
+func ParseStartChargingRequest(IMEI string, hexPort []byte, orderNumberHex []byte) []byte {
 	var resp bytes.Buffer
 
 	// imei := utils.ASCIIToHex(IMEI)
@@ -872,8 +872,9 @@ func ParseStartChargingRequest(IMEI string, hexPort []byte) []byte {
 	//PORT
 	resp.Write(hexPort)
 
+	resp.Write(orderNumberHex)
+
 	resp.Write([]byte{
-		0x00, 0x12, 0x34, 0x56, // order number (00123456)
 		0x01,                   // payment
 		0x01, 0x01, 0x01, 0x01, // card number
 		0x01,                   // chargin mode
@@ -885,7 +886,7 @@ func ParseStartChargingRequest(IMEI string, hexPort []byte) []byte {
 	return resp.Bytes()
 }
 
-func ParseStopChargingRequest(IMEI string) []byte {
+func ParseStopChargingRequest(IMEI string, orderNumberHex []byte) []byte {
 	var resp bytes.Buffer
 
 	// imei := utils.ASCIIToHex(IMEI)
@@ -904,8 +905,9 @@ func ParseStopChargingRequest(IMEI string) []byte {
 	//PORT
 	resp.Write([]byte{0x02})
 
+	resp.Write(orderNumberHex)
+
 	resp.Write([]byte{
-		0x00, 0x12, 0x34, 0x56, // order number (00123456)
 		0x8F, // checksum
 	})
 

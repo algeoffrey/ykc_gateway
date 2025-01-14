@@ -49,5 +49,6 @@ type StartChargingRequest struct {
 }
 
 type StopChargingRequest struct {
-	ClientID string `json:"clientID"`
+	ClientID    string `json:"clientID"`
+	OrderNumber string `json:"orderNumber"`
 }

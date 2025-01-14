@@ -56,7 +56,12 @@ func StopChargingHandler(c *gin.Context) {
 		return
 	}
 
-	err := services.StopCharging(req.ClientID)
+	if req.OrderNumber == "" {
+		c.JSON(400, gin.H{"error": "order number is required"})
+		return
+	}
+
+	err := services.StopCharging(req.ClientID, req.OrderNumber)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return

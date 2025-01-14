@@ -13,7 +13,7 @@ func StartCharging(IPAddress string, port int, orderNumber string) error {
 	hexPort := []byte{byte(port)}                   // Convert port number directly to byte (1->0x01, 2->0x02, etc)
 	orderNumberHex := utils.ASCIIToHex(orderNumber) // Convert ASCII string to hex bytes
 	utils.PrintHex(orderNumberHex)
-	packet := protocols.ParseStartChargingRequest(imei, hexPort)
+	packet := protocols.ParseStartChargingRequest(imei, hexPort, orderNumberHex)
 	err = utils.SendMessage(conn, packet)
 	if err != nil {
 		return err
@@ -21,12 +21,13 @@ func StartCharging(IPAddress string, port int, orderNumber string) error {
 	return nil
 }
 
-func StopCharging(IPAddress string) error {
+func StopCharging(IPAddress string, orderNumber string) error {
 	conn, imei, err := utils.GetClientByIPAddress(IPAddress)
 	if err != nil {
 		return err
 	}
-	packet := protocols.ParseStopChargingRequest(imei)
+	orderNumberHex := utils.ASCIIToHex(orderNumber)
+	packet := protocols.ParseStopChargingRequest(imei, orderNumberHex)
 	err = utils.SendMessage(conn, packet)
 	if err != nil {
 		return err
