@@ -792,7 +792,7 @@ func PackDeviceLoginResponseMessage(msg *dtos.DeviceLoginResponseMessage) []byte
 
 func PackRemoteStartMessage(buf []byte, header *dtos.Header) *dtos.RemoteStartMessage {
 	utils.PrintHex(buf)
-	payload := buf[21:] // Skip header and imei bytes
+	payload := buf[6:] // Skip header and imei bytes
 
 	return &dtos.RemoteStartMessage{
 		Header:      header,
@@ -804,7 +804,7 @@ func PackRemoteStartMessage(buf []byte, header *dtos.Header) *dtos.RemoteStartMe
 }
 
 func PackRemoteStopMessage(buf []byte, header *dtos.Header) *dtos.RemoteStopMessage {
-	payload := buf[21:] // Skip the header and imei
+	payload := buf[6:] // Skip the header and imei
 
 	return &dtos.RemoteStopMessage{
 		Header:      header,
