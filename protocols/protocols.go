@@ -845,6 +845,7 @@ func parseSegments(data []byte, count int) []uint16 {
 func PackSubmitFinalStatusResponse() []byte {
 	resp := &bytes.Buffer{}
 	resp.Write(utils.HexToBytes("5AA5"))
+	resp.Write([]byte{0x85, 0x00})
 	resp.Write([]byte{0x01})
 	resp.Write([]byte{
 		0x00, 0x12, 0x34, 0x56, // order number (00123456)
