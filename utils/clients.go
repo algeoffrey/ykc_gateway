@@ -49,7 +49,7 @@ func GetClientByIPAddress(ipAddress string) (net.Conn, string, error) {
 
 func SendMessage(conn net.Conn, message []byte) error {
 	// Convert message to bytes or proper format
-	PrintHexAndByte(message)
+	PrintHex(message)
 	// Send the message to the device
 	_, err := conn.Write(message)
 	if err != nil {

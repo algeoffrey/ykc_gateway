@@ -10,10 +10,10 @@ import (
 	"time"
 )
 
-func PrintHexAndByte(data []byte) {
+func PrintHex(data []byte) {
 	// Convert the byte slice to a hexadecimal string
 	hexString := hex.EncodeToString(data)
-
+	//TODO: just print the hex string , no need to split to group
 	// Split the hex string into groups of 4 characters (2 bytes per group)
 	var groupedHex []string
 	for i := 0; i < len(hexString); i += 4 {
