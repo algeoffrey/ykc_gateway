@@ -797,7 +797,7 @@ func PackRemoteStartMessage(buf []byte, header *dtos.Header) *dtos.RemoteStartMe
 	return &dtos.RemoteStartMessage{
 		Header:      header,
 		Port:        int(payload[0]),
-		OrderNumber: utils.HexToASCII(fmt.Sprintf("%02x%02x%02x%02x", payload[1], payload[2], payload[3], payload[4])),
+		OrderNumber: string(payload[1:5]),
 		StartMode:   int(payload[5]),
 		StartResult: int(payload[6]),
 	}
@@ -809,7 +809,7 @@ func PackRemoteStopMessage(buf []byte, header *dtos.Header) *dtos.RemoteStopMess
 	return &dtos.RemoteStopMessage{
 		Header:      header,
 		Port:        int(payload[0]),
-		OrderNumber: fmt.Sprintf("%02x%02x%02x%02x", payload[1], payload[2], payload[3], payload[4]),
+		OrderNumber: string(payload[1:5]),
 	}
 }
 
@@ -820,7 +820,7 @@ func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitF
 	return &dtos.SubmitFinalStatusMessage{
 		Header:           header,
 		Port:             payload[0],
-		OrderNumber:      utils.HexToASCII(fmt.Sprintf("%02x%02x%02x%02x", payload[1], payload[2], payload[3], payload[4])),
+		OrderNumber:      string(payload[1:5]),
 		ChargingTime:     uint32(payload[8])<<24 | uint32(payload[6])<<16 | uint32(payload[5])<<8 | uint32(payload[4]),
 		ElectricityUsage: uint32(payload[12])<<24 | uint32(payload[11])<<16 | uint32(payload[10])<<8 | uint32(payload[9]),
 		UsageCost:        uint32(payload[13])<<24 | uint32(payload[14])<<16 | uint32(payload[15])<<8 | uint32(payload[16]),
