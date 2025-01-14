@@ -179,7 +179,7 @@ func PackBillingModelVerificationResponseMessage(msg *dtos.BillingModelVerificat
 }
 
 func PackHeartbeatMessage(buf []byte, header *dtos.Header) *dtos.HeartbeatMessage {
-	payload := buf[21:] // Skip the header (first 5 bytes)
+	payload := buf[5:] // Skip the header (first 5 bytes)
 
 	// Parse fields
 	signalValue := int(payload[0])
@@ -856,7 +856,7 @@ func PackSubmitFinalStatusResponse(msg *dtos.SubmitFinalStatusResponse) []byte {
 func ParseStartChargingRequest(IMEI string) []byte {
 	var resp bytes.Buffer
 
-	imei := utils.ASCIIToHex(IMEI)
+	// imei := utils.ASCIIToHex(IMEI)
 	// Frame Header (5AA5)
 	resp.Write([]byte{0x5A, 0xA5})
 
@@ -867,7 +867,7 @@ func ParseStartChargingRequest(IMEI string) []byte {
 	resp.Write([]byte{RemoteStart, 0x00})
 
 	//IMEI
-	resp.Write(imei)
+	// resp.Write(imei)
 
 	//PORT
 	resp.Write([]byte{0x01})
@@ -888,7 +888,7 @@ func ParseStartChargingRequest(IMEI string) []byte {
 func ParseStopChargingRequest(IMEI string) []byte {
 	var resp bytes.Buffer
 
-	imei := utils.ASCIIToHex(IMEI)
+	// imei := utils.ASCIIToHex(IMEI)
 	// Frame Header (5AA5)
 	resp.Write([]byte{0x5A, 0xA5})
 
@@ -899,7 +899,7 @@ func ParseStopChargingRequest(IMEI string) []byte {
 	resp.Write([]byte{RemoteStop, 0x00})
 
 	//IMEI
-	resp.Write(imei)
+	// resp.Write(imei)
 
 	//PORT
 	resp.Write([]byte{0x01})
