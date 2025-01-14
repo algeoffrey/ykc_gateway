@@ -92,8 +92,8 @@ func enableTcpServer(opt *dtos.Options) {
 func enableHttpServer(opt *dtos.Options) {
 	fmt.Println("Http ok")
 	r := gin.Default()
-	r.GET("/start", handlers.StartChargingRouter)
-	r.GET("/stop", handlers.StopChargingRouter)
+	r.POST("/start", handlers.StartChargingHandler)
+	r.POST("/stop", handlers.StopChargingHandler)
 	r.POST("/proxy/02", handlers.VerificationResponseRouter)
 	r.POST("/proxy/06", handlers.BillingModelVerificationResponseHandler)
 	r.POST("/proxy/0a", handlers.BillingModelResponseMessageHandler)

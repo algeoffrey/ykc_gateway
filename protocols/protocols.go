@@ -853,7 +853,7 @@ func PackSubmitFinalStatusResponse() []byte {
 	return resp.Bytes()
 }
 
-func ParseStartChargingRequest(IMEI string) []byte {
+func ParseStartChargingRequest(IMEI string, hexPort []byte) []byte {
 	var resp bytes.Buffer
 
 	// imei := utils.ASCIIToHex(IMEI)
@@ -870,7 +870,7 @@ func ParseStartChargingRequest(IMEI string) []byte {
 	// resp.Write(imei)
 
 	//PORT
-	resp.Write([]byte{0x03})
+	resp.Write(hexPort)
 
 	resp.Write([]byte{
 		0x00, 0x12, 0x34, 0x56, // order number (00123456)

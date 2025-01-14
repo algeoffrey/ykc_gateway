@@ -12,34 +12,56 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func StartChargingRouter(c *gin.Context) {
-	clientID := c.DefaultQuery("clientID", "")
-	if clientID == "" {
+func StartChargingHandler(c *gin.Context) {
+	var req dtos.StartChargingRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": "invalid request body"})
+		return
+	}
+
+	if req.ClientID == "" {
 		c.JSON(400, gin.H{"error": "client ID is required"})
 		return
 	}
-	err := services.StartCharging(clientID)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err})
+
+	if req.Port == 0 {
+		c.JSON(400, gin.H{"error": "port is required"})
 		return
 	}
+
+	if req.OrderNumber == "" {
+		c.JSON(400, gin.H{"error": "order number is required"})
+		return
+	}
+
+	err := services.StartCharging(req.ClientID, req.Port, req.OrderNumber)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(200, gin.H{"status": "message sent"})
 }
 
-func StopChargingRouter(c *gin.Context) {
+func StopChargingHandler(c *gin.Context) {
+	var req dtos.StopChargingRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": "invalid request body"})
+		return
+	}
 
-	clientID := c.DefaultQuery("clientID", "")
-	if clientID == "" {
+	if req.ClientID == "" {
 		c.JSON(400, gin.H{"error": "client ID is required"})
 		return
 	}
-	err := services.StopCharging(clientID)
+
+	err := services.StopCharging(req.ClientID)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err})
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(200, gin.H{"status": "message sent"})
-
 }
 
 func VerificationResponseRouter(c *gin.Context) {

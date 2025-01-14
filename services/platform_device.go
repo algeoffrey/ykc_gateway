@@ -5,12 +5,15 @@ import (
 	"ykc-proxy-server/utils"
 )
 
-func StartCharging(IPAddress string) error {
+func StartCharging(IPAddress string, port int, orderNumber string) error {
 	conn, imei, err := utils.GetClientByIPAddress(IPAddress)
 	if err != nil {
 		return err
 	}
-	packet := protocols.ParseStartChargingRequest(imei)
+	hexPort := []byte{byte(port)}                   // Convert port number directly to byte (1->0x01, 2->0x02, etc)
+	orderNumberHex := utils.ASCIIToHex(orderNumber) // Convert ASCII string to hex bytes
+	utils.PrintHex(orderNumberHex)
+	packet := protocols.ParseStartChargingRequest(imei, hexPort)
 	err = utils.SendMessage(conn, packet)
 	if err != nil {
 		return err

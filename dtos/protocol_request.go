@@ -41,3 +41,13 @@ type SetBillingModelRequestMessage struct {
 	AccrualRatio     int     `json:"accrualRatio"`
 	RateList         []int   `json:"rateList"`
 }
+
+type StartChargingRequest struct {
+	ClientID    string `json:"clientID"`
+	Port        int    `json:"port"`
+	OrderNumber string `json:"orderNumber"`
+}
+
+type StopChargingRequest struct {
+	ClientID string `json:"clientID"`
+}
