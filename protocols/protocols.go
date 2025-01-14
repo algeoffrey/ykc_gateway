@@ -814,7 +814,7 @@ func PackRemoteStopMessage(buf []byte, header *dtos.Header) *dtos.RemoteStopMess
 }
 
 func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitFinalStatusMessage {
-	payload := buf[5:]
+	payload := buf[6:]
 	segmentCount := payload[10]
 
 	return &dtos.SubmitFinalStatusMessage{
