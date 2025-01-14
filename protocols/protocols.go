@@ -825,8 +825,8 @@ func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitF
 	log.Debugf("Parsed Port: %d", payload[0])
 	port := payload[0]
 
-	log.Debugf("Parsed Order Number: %d", binary.BigEndian.Uint32(payload[1:5]))
-	orderNumber := binary.LittleEndian.Uint32(payload[1:5])
+	log.Debugf("Parsed Order Number: %d", hex2.EncodeToString(payload[1:5]))
+	orderNumber := hex2.EncodeToString(payload[1:5])
 
 	log.Debugf("Parsed Charging Time: %d", binary.BigEndian.Uint32(payload[5:9]))
 	chargingTime := binary.LittleEndian.Uint32(payload[5:9])
@@ -863,7 +863,7 @@ func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitF
 	return &dtos.SubmitFinalStatusMessage{
 		Header:           header,
 		Port:             port,
-		OrderNumber:      strconv.FormatUint(uint64(orderNumber), 10),
+		OrderNumber:      orderNumber,
 		ChargingTime:     chargingTime,
 		ElectricityUsage: electricityUsage,
 		UsageCost:        usageCost,
@@ -891,7 +891,7 @@ func PackSubmitFinalStatusResponse() []byte {
 	resp := &bytes.Buffer{}
 	resp.Write(utils.HexToBytes("5AA5"))
 	resp.Write([]byte{0x85, 0x00})
-	resp.Write([]byte{0x01})
+	resp.Write([]byte{0x02})
 	resp.Write([]byte{
 		0x00, 0x12, 0x34, 0x56, // order number (00123456)
 	})

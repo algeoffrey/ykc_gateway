@@ -385,6 +385,10 @@ func RemoteStop(buf []byte, header *dtos.Header, conn net.Conn) {
 
 func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) []byte {
 	msg := protocols.PackSubmitFinalStatusMessage(buf, header)
+	if msg == nil {
+		log.Error("Failed to parse Submit Final Status message")
+		return nil
+	}
 	log.WithFields(log.Fields{
 		"port":             msg.Port,
 		"orderNumber":      msg.OrderNumber,
