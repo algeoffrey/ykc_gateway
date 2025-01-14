@@ -914,6 +914,33 @@ func ParseStartChargingRequest(IMEI string) []byte {
 	return resp.Bytes()
 }
 
+func ParseStopChargingRequest(IMEI string) []byte {
+	var resp bytes.Buffer
+
+	imei := utils.ASCIIToHex(IMEI)
+	// Frame Header (5AA5)
+	resp.Write([]byte{0x5A, 0xA5})
+
+	// Data Length (12 bytes)
+	resp.Write([]byte{0x16, 0x00})
+
+	// Command (84)
+	resp.Write([]byte{RemoteStop, 0x00})
+
+	//IMEI
+	resp.Write(imei)
+
+	//PORT
+	resp.Write([]byte{0x01})
+
+	resp.Write([]byte{
+		0x00, 0x12, 0x34, 0x56, // order number (00123456)
+		0x8F, // checksum
+	})
+
+	return resp.Bytes()
+}
+
 func PackChargingPortDataMessage(buf []byte, header *dtos.Header) *dtos.ChargingPortDataMessage {
 	if len(buf) < 37 {
 		log.Error("Message too short to process CMD088")
