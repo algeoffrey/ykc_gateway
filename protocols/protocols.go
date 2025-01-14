@@ -793,7 +793,7 @@ func PackDeviceLoginResponseMessage(msg *dtos.DeviceLoginResponseMessage) []byte
 func PackRemoteStartMessage(buf []byte, header *dtos.Header) *dtos.RemoteStartMessage {
 	payload := buf[6:] // Skip header and imei bytes
 
-	utils.PrintHex(payload[1:6])
+	utils.PrintHex(payload[1:])
 	return &dtos.RemoteStartMessage{
 		Header:      header,
 		Port:        int(payload[0]),
@@ -918,7 +918,8 @@ func ParseStartChargingRequest(IMEI string, hexPort []byte, orderNumberHex []byt
 	//PORT
 	resp.Write(hexPort)
 
-	resp.Write(orderNumberHex)
+	// Ensure full order number is written (00123456)
+	resp.Write([]byte{0x30, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36}) // Fixed 8-byte order number
 
 	resp.Write([]byte{
 		0x01,                   // payment
