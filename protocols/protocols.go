@@ -179,7 +179,7 @@ func PackBillingModelVerificationResponseMessage(msg *dtos.BillingModelVerificat
 }
 
 func PackHeartbeatMessage(buf []byte, header *dtos.Header) *dtos.HeartbeatMessage {
-	payload := buf[21:] // Skip the header (first 5 bytes)
+	payload := buf[6:] // Skip the header (first 6 bytes)
 
 	// Parse fields
 	signalValue := int(payload[0])
@@ -773,10 +773,10 @@ func PackDeviceLoginResponseMessage(msg *dtos.DeviceLoginResponseMessage) []byte
 	resp.Write(utils.HexToBytes("0C00"))
 
 	// Command (81)
-	resp.Write([]byte{0x81})
+	resp.Write([]byte{0x81, 0x00})
 
-	// Time (8 bytes, BCD format)
-	resp.Write([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
+	// Time (7 bytes, BCD format)
+	resp.Write([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
 
 	// Heartbeat Interval (1 byte)
 	resp.Write([]byte{byte(msg.HeartbeatPeriod)})
@@ -791,90 +791,30 @@ func PackDeviceLoginResponseMessage(msg *dtos.DeviceLoginResponseMessage) []byte
 }
 
 func PackRemoteStartMessage(buf []byte, header *dtos.Header) *dtos.RemoteStartMessage {
-	utils.PrintHexAndByte(buf)
-	payload := buf[5:] // Skip header bytes
+	payload := buf[6:] // Skip header and imei bytes
 
+	utils.PrintHex(payload[1:5])
 	return &dtos.RemoteStartMessage{
-		Header:          header,
-		Port:            int(payload[0]),
-		OrderNumber:     uint32(payload[1])<<24 | uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]),
-		StartMethod:     int(payload[5]),
-		CardNumber:      uint32(payload[6])<<24 | uint32(payload[7])<<16 | uint32(payload[8])<<8 | uint32(payload[9]),
-		ChargingMethod:  int(payload[10]),
-		ChargingParam:   uint32(payload[11])<<24 | uint32(payload[12])<<16 | uint32(payload[13])<<8 | uint32(payload[14]),
-		AvailableAmount: uint32(payload[15])<<24 | uint32(payload[16])<<16 | uint32(payload[17])<<8 | uint32(payload[18]),
+		Header:      header,
+		Port:        int(payload[0]),
+		OrderNumber: string(payload[1:5]),
+		StartMode:   int(payload[5]),
+		StartResult: int(payload[6]),
 	}
 }
 
-func PackRemoteStartResponseMessage(msg *dtos.RemoteStartResponseMessage) []byte {
-	var resp bytes.Buffer
-
-	// Frame Header (5AA5)
-	resp.Write(utils.HexToBytes("5AA5"))
-
-	// Data Length (7 bytes total)
-	resp.Write([]byte{0x07, 0x00})
-
-	// Command (0x83)
-	resp.Write([]byte{RemoteStart})
-
-	// Payload
-	resp.Write([]byte{byte(msg.Port)})
-	resp.Write([]byte{
-		byte(msg.OrderNumber >> 24),
-		byte(msg.OrderNumber >> 16),
-		byte(msg.OrderNumber >> 8),
-		byte(msg.OrderNumber),
-	})
-	resp.Write([]byte{byte(msg.StartMethod), byte(msg.Result)})
-
-	// Calculate and append checksum
-	checksum := CalculateChecksum(resp.Bytes()[2:])
-	resp.Write([]byte{checksum})
-
-	return resp.Bytes()
-}
-
 func PackRemoteStopMessage(buf []byte, header *dtos.Header) *dtos.RemoteStopMessage {
-	payload := buf[5:] // Skip the header (first 5 bytes)
+	payload := buf[6:] // Skip the header and imei
 
 	return &dtos.RemoteStopMessage{
 		Header:      header,
 		Port:        int(payload[0]),
-		OrderNumber: uint32(payload[1])<<24 | uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]),
+		OrderNumber: string(payload[1:5]),
 	}
 }
 
-func PackRemoteStopResponseMessage(msg *dtos.RemoteStopResponseMessage) []byte {
-	var resp bytes.Buffer
-
-	// Frame Header
-	resp.Write(utils.HexToBytes("5AA5"))
-
-	// Data Length
-	resp.Write([]byte{0x07, 0x00})
-
-	// Command
-	resp.Write([]byte{0x84})
-
-	// Payload
-	resp.Write([]byte{byte(msg.Port)})
-	resp.Write([]byte{
-		byte(msg.OrderNumber >> 24),
-		byte(msg.OrderNumber >> 16),
-		byte(msg.OrderNumber >> 8),
-		byte(msg.OrderNumber),
-	})
-	resp.Write([]byte{msg.Result})
-
-	// Checksum
-	checksum := CalculateChecksum(resp.Bytes()[2:])
-	resp.Write([]byte{checksum})
-
-	return resp.Bytes()
-}
-
 func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitFinalStatusMessage {
+
     if len(buf) < 24 { // Make sure the buffer is large enough to hold the expected data
         log.Error("Message too short to process CMD0x85")
         return nil
@@ -936,6 +876,7 @@ func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitF
         SegmentPrices:    segmentPrices,
         Reserved:         reserved,
     }
+
 }
 
 func parseSegments(data []byte, count int) []uint16 {
@@ -946,22 +887,22 @@ func parseSegments(data []byte, count int) []uint16 {
     return segments
 }
 
+func PackSubmitFinalStatusResponse() []byte {
 
-func PackSubmitFinalStatusResponse(msg *dtos.SubmitFinalStatusResponse) []byte {
 	resp := &bytes.Buffer{}
 	resp.Write(utils.HexToBytes("5AA5"))
-	resp.Write([]byte{0x02, 0x00})
-	resp.Write([]byte{SubmitFinalStatus})
-	resp.Write([]byte{msg.Result})
-	checksum := CalculateChecksum(resp.Bytes()[2:])
-	resp.Write([]byte{checksum})
+	resp.Write([]byte{0x85, 0x00})
+	resp.Write([]byte{0x01})
+	resp.Write([]byte{
+		0x00, 0x12, 0x34, 0x56, // order number (00123456)
+	})
 	return resp.Bytes()
 }
 
-func ParseStartChargingRequest(IMEI string) []byte {
+func ParseStartChargingRequest(IMEI string, hexPort []byte, orderNumberHex []byte) []byte {
 	var resp bytes.Buffer
 
-	imei := utils.ASCIIToHex(IMEI)
+	// imei := utils.ASCIIToHex(IMEI)
 	// Frame Header (5AA5)
 	resp.Write([]byte{0x5A, 0xA5})
 
@@ -972,16 +913,17 @@ func ParseStartChargingRequest(IMEI string) []byte {
 	resp.Write([]byte{RemoteStart, 0x00})
 
 	//IMEI
-	resp.Write(imei)
+	// resp.Write(imei)
 
 	//PORT
-	resp.Write([]byte{0x01})
+	resp.Write(hexPort)
+
+	resp.Write(orderNumberHex)
 
 	resp.Write([]byte{
-		0x12, 0x34, 0x56, 0x00, // order number (123456)
 		0x01,                   // payment
 		0x01, 0x01, 0x01, 0x01, // card number
-		0x03,                   // chargin mode
+		0x01,                   // chargin mode
 		0x3C, 0x00, 0x00, 0x00, // time based (60 seconds)
 		0x01, 0x01, 0x01, 0x01, // available amount
 		0xED, // checksum
@@ -990,15 +932,41 @@ func ParseStartChargingRequest(IMEI string) []byte {
 	return resp.Bytes()
 }
 
+func ParseStopChargingRequest(IMEI string, orderNumberHex []byte) []byte {
+	var resp bytes.Buffer
+
+	// imei := utils.ASCIIToHex(IMEI)
+	// Frame Header (5AA5)
+	resp.Write([]byte{0x5A, 0xA5})
+
+	// Data Length (12 bytes)
+	resp.Write([]byte{0x16, 0x00})
+
+	// Command (84)
+	resp.Write([]byte{RemoteStop, 0x00})
+
+	//IMEI
+	// resp.Write(imei)
+
+	//PORT
+	resp.Write([]byte{0x02})
+
+	resp.Write(orderNumberHex)
+
+	resp.Write([]byte{
+		0x8F, // checksum
+	})
+
+	return resp.Bytes()
+}
+
 func PackChargingPortDataMessage(buf []byte, header *dtos.Header) *dtos.ChargingPortDataMessage {
-	if len(buf) < 37 { 
+	if len(buf) < 37 {
 		log.Error("Message too short to process CMD088")
 		return nil
 	}
 
-
 	payload := buf[6:]
-
 
 	reserved := payload[0]
 	log.Debugf("Parsed Reserved Byte: %d", reserved)

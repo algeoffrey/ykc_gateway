@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net"
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/protocols"
@@ -59,6 +60,13 @@ func SendHeartbeatResponse(conn net.Conn, header *dtos.Header) error {
 }
 
 func Hearthbeat(buf []byte, header *dtos.Header, conn net.Conn) *dtos.HeartbeatMessage {
+	IPAddress := conn.RemoteAddr().String()
+	conn, imei, err := utils.GetClientByIPAddress(IPAddress)
+	if err != nil {
+		return nil
+	}
+	fmt.Println(imei)
+	fmt.Println(IPAddress)
 	msg := protocols.PackHeartbeatMessage(buf, header)
 	if msg == nil {
 		log.Error("Failed to parse Heartbeat message")
@@ -309,15 +317,11 @@ func ChargingFinishedMessageRouter(opt *dtos.Options, hex []string, header *dtos
 func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) (*dtos.DeviceLoginMessage, []byte) {
 	// Unpack Device Login Message
 	msg := protocols.PackDeviceLoginMessage(buf, header)
-
 	utils.StoreClient(dtos.ClientInfo{IPAddress: conn.RemoteAddr().String(), IMEI: msg.IMEI}, conn)
 	if msg == nil {
 		log.Error("Failed to parse Device Login message due to checksum mismatch or invalid buffer")
 		return nil, nil
 	}
-
-	log.Debugf("Raw Buffer: %x", buf)
-
 	// Log the extracted details
 	log.WithFields(log.Fields{
 		"imei":            msg.IMEI,
@@ -330,7 +334,7 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 	}).Debug("[81] Device Login message")
 
 	// Auto response preparation
-	heartbeatPeriod := 10 // Default heartbeat interval (10 seconds)
+	heartbeatPeriod := 30 // Default heartbeat interval (10 seconds)
 	if heartbeatPeriod < 10 || heartbeatPeriod > 250 {
 		heartbeatPeriod = 30 // Enforce valid range (10-250 seconds)
 	}
@@ -341,7 +345,7 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 			Encrypted: false,
 		},
 		HeartbeatPeriod: heartbeatPeriod, // Valid interval
-		Result:          0xF0,            // Login successful
+		Result:          0x00,            // Login successful
 	}
 
 	// // Pack the response message
@@ -352,58 +356,31 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 
 }
 
-func RemoteStart(buf []byte, header *dtos.Header, conn net.Conn) []byte {
+func RemoteStart(buf []byte, header *dtos.Header, conn net.Conn) {
 	msg := protocols.PackRemoteStartMessage(buf, header)
 	if msg == nil {
 		log.Error("Failed to parse Remote Start message")
-		return nil
-	}
-
-	log.WithFields(log.Fields{
-		"port":            msg.Port,
-		"orderNumber":     msg.OrderNumber,
-		"startMethod":     msg.StartMethod,
-		"cardNumber":      msg.CardNumber,
-		"chargingMethod":  msg.ChargingMethod,
-		"chargingParam":   msg.ChargingParam,
-		"availableAmount": msg.AvailableAmount,
-	}).Debug("[83] Remote Start message")
-
-	// Auto Response
-	response := &dtos.RemoteStartResponseMessage{
-		Header:      header,
-		Port:        msg.Port,
-		OrderNumber: msg.OrderNumber,
-		StartMethod: msg.StartMethod,
-		Result:      0x00, // 0x00 for success
-	}
-
-	data := protocols.PackRemoteStartResponseMessage(response)
-	return data
-
-}
-
-func RemoteStop(buf []byte, header *dtos.Header, conn net.Conn) []byte {
-	msg := protocols.PackRemoteStopMessage(buf, header)
-	if msg == nil {
-		log.Error("Failed to parse Remote Stop message")
-		return nil
 	}
 
 	log.WithFields(log.Fields{
 		"port":        msg.Port,
 		"orderNumber": msg.OrderNumber,
+		"startMode":   msg.StartMode,
+		"startResult": msg.StartResult,
+	}).Debug("[83] Remote Start message")
+
+}
+
+func RemoteStop(buf []byte, header *dtos.Header, conn net.Conn) {
+	msg := protocols.PackRemoteStopMessage(buf, header)
+	if msg == nil {
+		log.Error("Failed to parse Remote Stop message")
+	}
+	log.WithFields(log.Fields{
+		"port":        msg.Port,
+		"orderNumber": msg.OrderNumber,
 	}).Debug("[84] Remote Stop message")
 
-	// Auto Response
-	response := &dtos.RemoteStopResponseMessage{
-		Header:      header,
-		Port:        msg.Port,
-		OrderNumber: msg.OrderNumber,
-		Result:      0x00, // 0x00 for success, other values for specific errors
-	}
-	data := protocols.PackRemoteStopResponseMessage(response)
-	return data
 }
 
 func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) []byte {
@@ -421,13 +398,7 @@ func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn 
 		"segmentPrices":    msg.SegmentPrices,
 	}).Debug("[85] Submit Final Status message")
 
-	// Auto Response
-	response := &dtos.SubmitFinalStatusResponse{
-		Header: header,
-		Result: 0x00, // Success
-	}
-
-	data := protocols.PackSubmitFinalStatusResponse(response)
+	data := protocols.PackSubmitFinalStatusResponse()
 	return data
 
 }
@@ -458,7 +429,6 @@ func ChargingPortData(opt *dtos.Options, buf []byte, header *dtos.Header, conn n
 
 	return msg
 }
-
 
 func SendRemoteShutdownRequest(req *dtos.RemoteShutdownRequestMessage) error {
 	c, _, err := utils.GetClientByIPAddress(req.Id)

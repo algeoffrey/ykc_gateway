@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/services"
@@ -11,34 +12,61 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func StartChargingRouter(c *gin.Context) {
-	clientID := c.DefaultQuery("clientID", "")
-	if clientID == "" {
+func StartChargingHandler(c *gin.Context) {
+	var req dtos.StartChargingRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": "invalid request body"})
+		return
+	}
+
+	if req.ClientID == "" {
 		c.JSON(400, gin.H{"error": "client ID is required"})
 		return
 	}
-	err := services.StartCharging(clientID)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err})
+
+	if req.Port == 0 {
+		c.JSON(400, gin.H{"error": "port is required"})
 		return
 	}
+
+	if req.OrderNumber == "" {
+		c.JSON(400, gin.H{"error": "order number is required"})
+		return
+	}
+
+	err := services.StartCharging(req.ClientID, req.Port, req.OrderNumber)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(200, gin.H{"status": "message sent"})
 }
 
-func StopChargingRouter(c *gin.Context) {
+func StopChargingHandler(c *gin.Context) {
+	var req dtos.StopChargingRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": "invalid request body"})
+		return
+	}
 
-	clientID := c.DefaultQuery("clientID", "")
-	if clientID == "" {
+	if req.ClientID == "" {
 		c.JSON(400, gin.H{"error": "client ID is required"})
 		return
 	}
-	err := services.StopCharging(clientID)
+
+	if req.OrderNumber == "" {
+		c.JSON(400, gin.H{"error": "order number is required"})
+		return
+	}
+
+	err := services.StopCharging(req.ClientID, req.OrderNumber)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err})
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(200, gin.H{"status": "message sent"})
-
 }
 
 func VerificationResponseRouter(c *gin.Context) {
@@ -79,9 +107,9 @@ func VerificationHandler(opt *dtos.Options, buf []byte, hex []string, header *dt
 }
 
 func HeartbeatHandler(buf []byte, header *dtos.Header, conn net.Conn) {
-	_ = services.Hearthbeat(buf, header, conn)
+	services.Hearthbeat(buf, header, conn)
 	// Send Heartbeat Response
-	_ = services.SendHeartbeatResponse(conn, header)
+	// _ = services.SendHeartbeatResponse(conn, header)
 }
 
 func BillingModelVerificationHandler(opt *dtos.Options, hex []string, header *dtos.Header, conn net.Conn) {
@@ -206,10 +234,13 @@ func RemoteRebootRequestMessageHandler(c *gin.Context) {
 func SubmitFinalStatusHandler(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn,
 ) {
 	data := services.SubmitFinalStatus(opt, buf, header, conn)
+	utils.PrintHex(data)
 	err := utils.SendMessage(conn, data)
 	if err != nil {
 		log.Errorf("Failed to send Submit Final Status response: %v", err)
 	} else {
+		IPAddress := conn.RemoteAddr().String()
+		fmt.Println(IPAddress)
 		log.Debug("Sent Submit Final Status response successfully")
 	}
 }
@@ -237,28 +268,13 @@ func DeviceLoginHandler(opt *dtos.Options, buf []byte, header *dtos.Header, conn
 }
 
 func RemoteStartHandler(buf []byte, header *dtos.Header, conn net.Conn) {
-	data := services.RemoteStart(buf, header, conn)
-	if data != nil {
-		err := utils.SendMessage(conn, data)
-		if err != nil {
-			log.Errorf("Failed to send Remote Start response: %v", err)
-		} else {
-			log.Debug("Sent Remote Start response successfully")
-		}
-	}
+	services.RemoteStart(buf, header, conn)
 
 }
 
 func RemoteStopHandler(buf []byte, header *dtos.Header, conn net.Conn) {
-	data := services.RemoteStop(buf, header, conn)
-	if data != nil {
-		err := utils.SendMessage(conn, data)
-		if err != nil {
-			log.Errorf("Failed to send Remote Start response: %v", err)
-		} else {
-			log.Debug("Sent Remote Start response successfully")
-		}
-	}
+	services.RemoteStop(buf, header, conn)
+
 }
 
 func ChargingPortDataHandler(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) {
@@ -279,6 +295,5 @@ func ChargingPortDataHandler(opt *dtos.Options, buf []byte, header *dtos.Header,
 			}
 		}
 	}
-
 
 }

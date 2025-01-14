@@ -182,33 +182,23 @@ type DeviceLoginMessage struct {
 }
 
 type RemoteStartMessage struct {
-	Header          *Header `json:"header"`
-	Port            int     `json:"port"`
-	OrderNumber     uint32  `json:"orderNumber"`
-	StartMethod     int     `json:"startMethod"`
-	CardNumber      uint32  `json:"cardNumber"`
-	ChargingMethod  int     `json:"chargingMethod"`
-	ChargingParam   uint32  `json:"chargingParam"`
-	AvailableAmount uint32  `json:"availableAmount"`
+	Header      *Header `json:"header"`
+	Port        int     `json:"port"`
+	OrderNumber string  `json:"orderNumber"`
+	StartMode   int     `json:"startMode"`
+	StartResult int     `json:"startResult"`
 }
 
 type RemoteStopMessage struct {
 	Header      *Header `json:"header"`
 	Port        int     `json:"port"`
-	OrderNumber uint32  `json:"orderNumber"`
-}
-
-type RemoteStopResponseMessage struct {
-	Header      *Header `json:"header"`
-	Port        int     `json:"port"`
-	OrderNumber uint32  `json:"orderNumber"`
-	Result      byte    `json:"result"`
+	OrderNumber string  `json:"orderNumber"`
 }
 
 type SubmitFinalStatusMessage struct {
 	Header           *Header  `json:"header"`
 	Port             byte     `json:"port"`
-	OrderNumber      uint32   `json:"orderNumber"`
+	OrderNumber      string   `json:"orderNumber"`
 	ChargingTime     uint32   `json:"chargingTime"`
 	ElectricityUsage uint32   `json:"electricityUsage"`
 	UsageCost        uint32   `json:"usageCost"`
@@ -219,11 +209,6 @@ type SubmitFinalStatusMessage struct {
 	SegmentDurations []uint16 `json:"segmentDurations"`
 	SegmentPrices    []uint16 `json:"segmentPrices"`
 	Reserved         []byte   `json:"reserved"`
-}
-
-type SubmitFinalStatusResponse struct {
-	Header *Header `json:"header"`
-	Result byte    `json:"result"`
 }
 
 type ChargingPortDataMessage struct {

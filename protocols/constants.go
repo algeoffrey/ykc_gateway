@@ -61,4 +61,5 @@ const (
 	RemoteStop        = byte(0x84)
 	SubmitFinalStatus = byte(0x85)
 	PortChargingData  = byte(0x88)
+	IMEIReport        = byte(0xC0)
 )
