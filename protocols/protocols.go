@@ -875,33 +875,77 @@ func PackRemoteStopResponseMessage(msg *dtos.RemoteStopResponseMessage) []byte {
 }
 
 func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitFinalStatusMessage {
-	payload := buf[5:]
-	segmentCount := payload[10]
+    if len(buf) < 24 { // Make sure the buffer is large enough to hold the expected data
+        log.Error("Message too short to process CMD0x85")
+        return nil
+    }
 
-	return &dtos.SubmitFinalStatusMessage{
-		Header:           header,
-		Port:             payload[0],
-		OrderNumber:      uint32(payload[1])<<24 | uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]),
-		ChargingTime:     uint32(payload[5])<<24 | uint32(payload[6])<<16 | uint32(payload[7])<<8 | uint32(payload[8]),
-		ElectricityUsage: uint32(payload[9])<<24 | uint32(payload[10])<<16 | uint32(payload[11])<<8 | uint32(payload[12]),
-		UsageCost:        uint32(payload[13])<<24 | uint32(payload[14])<<16 | uint32(payload[15])<<8 | uint32(payload[16]),
-		StopReason:       payload[17],
-		StopPower:        uint16(payload[18])<<8 | uint16(payload[19]),
-		CardID:           uint32(payload[20])<<24 | uint32(payload[21])<<16 | uint32(payload[22])<<8 | uint32(payload[23]),
-		SegmentCount:     segmentCount,
-		SegmentDurations: parseSegments(payload[24:], int(segmentCount)),
-		SegmentPrices:    parseSegments(payload[24+int(segmentCount)*2:], int(segmentCount)),
-		Reserved:         payload[24+int(segmentCount)*4:],
-	}
+    payload := buf[5:]
+
+    // Parsing fields and logging the values
+    log.Debugf("Parsed Port: %d", payload[0])
+    port := payload[0]
+
+    log.Debugf("Parsed Order Number: %d", binary.BigEndian.Uint32(payload[1:5]))
+    orderNumber := binary.BigEndian.Uint32(payload[1:5])
+
+    log.Debugf("Parsed Charging Time: %d", binary.BigEndian.Uint32(payload[5:9]))
+    chargingTime := binary.BigEndian.Uint32(payload[5:9])
+
+    log.Debugf("Parsed Electricity Usage: %d", binary.BigEndian.Uint32(payload[9:13]))
+    electricityUsage := binary.BigEndian.Uint32(payload[9:13])
+
+    log.Debugf("Parsed Usage Cost: %d", binary.BigEndian.Uint32(payload[13:17]))
+    usageCost := binary.BigEndian.Uint32(payload[13:17])
+
+    stopReason := payload[17]
+    log.Debugf("Parsed Stop Reason: %d", stopReason)
+
+    log.Debugf("Parsed Stop Power: %d", binary.BigEndian.Uint16(payload[18:20]))
+    stopPower := binary.BigEndian.Uint16(payload[18:20])
+
+    log.Debugf("Parsed Card ID: %d", binary.BigEndian.Uint32(payload[20:24]))
+    cardID := binary.BigEndian.Uint32(payload[20:24])
+
+    segmentCount := payload[24]
+    log.Debugf("Parsed Segment Count: %d", segmentCount)
+
+    // Parsing segment durations and prices using the segment count
+    segmentDurations := parseSegments(payload[25:], int(segmentCount))
+    log.Debugf("Parsed Segment Durations: %v", segmentDurations)
+
+    segmentPrices := parseSegments(payload[25+int(segmentCount)*2:], int(segmentCount))
+    log.Debugf("Parsed Segment Prices: %v", segmentPrices)
+
+    reserved := payload[25+int(segmentCount)*4:]
+    log.Debugf("Parsed Reserved: %v", reserved)
+
+    // Return the parsed message
+    return &dtos.SubmitFinalStatusMessage{
+        Header:           header,
+        Port:             port,
+        OrderNumber:      orderNumber,
+        ChargingTime:     chargingTime,
+        ElectricityUsage: electricityUsage,
+        UsageCost:        usageCost,
+        StopReason:       stopReason,
+        StopPower:        stopPower,
+        CardID:           cardID,
+        SegmentCount:     segmentCount,
+        SegmentDurations: segmentDurations,
+        SegmentPrices:    segmentPrices,
+        Reserved:         reserved,
+    }
 }
 
 func parseSegments(data []byte, count int) []uint16 {
-	segments := make([]uint16, count)
-	for i := 0; i < count; i++ {
-		segments[i] = uint16(data[i*2])<<8 | uint16(data[i*2+1])
-	}
-	return segments
+    segments := make([]uint16, count)
+    for i := 0; i < count; i++ {
+        segments[i] = binary.BigEndian.Uint16(data[i*2 : i*2+2])
+    }
+    return segments
 }
+
 
 func PackSubmitFinalStatusResponse(msg *dtos.SubmitFinalStatusResponse) []byte {
 	resp := &bytes.Buffer{}
