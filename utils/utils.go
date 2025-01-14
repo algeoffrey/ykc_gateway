@@ -127,10 +127,9 @@ func ASCIIToHex(ascii string) []byte {
 	hexBytes := make([]byte, len(hexString)/2)
 	for i := 0; i < len(hexBytes); i++ {
 		hexPair := hexString[i*2 : i*2+2]
-		value, _ := strconv.ParseUint(hexPair, 16, 8) // Parse each hex pair
+		value, _ := strconv.ParseUint(hexPair, 16, 8)
 		hexBytes[i] = byte(value)
 	}
-
 	return hexBytes
 }
 

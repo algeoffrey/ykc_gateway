@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/hex"
 	"ykc-proxy-server/protocols"
 	"ykc-proxy-server/utils"
 )
@@ -10,8 +11,8 @@ func StartCharging(IPAddress string, port int, orderNumber string) error {
 	if err != nil {
 		return err
 	}
-	hexPort := []byte{byte(port)}                   // Convert port number directly to byte (1->0x01, 2->0x02, etc)
-	orderNumberHex := utils.ASCIIToHex(orderNumber) // Convert ASCII string to hex bytes
+	hexPort := []byte{byte(port)} // Convert port number directly to byte (1->0x01, 2->0x02, etc)
+	orderNumberHex, _ := hex.DecodeString(orderNumber)
 	utils.PrintHex(orderNumberHex)
 	packet := protocols.ParseStartChargingRequest(imei, hexPort, orderNumberHex)
 	err = utils.SendMessage(conn, packet)
