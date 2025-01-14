@@ -192,7 +192,7 @@ type RemoteStartMessage struct {
 type RemoteStopMessage struct {
 	Header      *Header `json:"header"`
 	Port        int     `json:"port"`
-	OrderNumber uint32  `json:"orderNumber"`
+	OrderNumber string  `json:"orderNumber"`
 }
 
 type RemoteStopResponseMessage struct {
