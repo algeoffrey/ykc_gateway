@@ -309,7 +309,6 @@ func ChargingFinishedMessageRouter(opt *dtos.Options, hex []string, header *dtos
 func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) (*dtos.DeviceLoginMessage, []byte) {
 	// Unpack Device Login Message
 	msg := protocols.PackDeviceLoginMessage(buf, header)
-
 	utils.StoreClient(dtos.ClientInfo{IPAddress: conn.RemoteAddr().String(), IMEI: msg.IMEI}, conn)
 	if msg == nil {
 		log.Error("Failed to parse Device Login message due to checksum mismatch or invalid buffer")
@@ -372,21 +371,11 @@ func RemoteStop(buf []byte, header *dtos.Header, conn net.Conn) {
 	if msg == nil {
 		log.Error("Failed to parse Remote Stop message")
 	}
-
 	log.WithFields(log.Fields{
 		"port":        msg.Port,
 		"orderNumber": msg.OrderNumber,
 	}).Debug("[84] Remote Stop message")
 
-	// Auto Response
-	// response := &dtos.RemoteStopResponseMessage{
-	// 	Header:      header,
-	// 	Port:        msg.Port,
-	// 	OrderNumber: msg.OrderNumber,
-	// 	Result:      0x00, // 0x00 for success, other values for specific errors
-	// }
-	// data := protocols.PackRemoteStopResponseMessage(response)
-	// return data
 }
 
 func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) []byte {

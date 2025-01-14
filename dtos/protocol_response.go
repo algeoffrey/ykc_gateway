@@ -195,13 +195,6 @@ type RemoteStopMessage struct {
 	OrderNumber string  `json:"orderNumber"`
 }
 
-type RemoteStopResponseMessage struct {
-	Header      *Header `json:"header"`
-	Port        int     `json:"port"`
-	OrderNumber uint32  `json:"orderNumber"`
-	Result      byte    `json:"result"`
-}
-
 type SubmitFinalStatusMessage struct {
 	Header           *Header  `json:"header"`
 	Port             byte     `json:"port"`

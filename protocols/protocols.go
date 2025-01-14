@@ -813,35 +813,6 @@ func PackRemoteStopMessage(buf []byte, header *dtos.Header) *dtos.RemoteStopMess
 	}
 }
 
-func PackRemoteStopResponseMessage(msg *dtos.RemoteStopResponseMessage) []byte {
-	var resp bytes.Buffer
-
-	// Frame Header
-	resp.Write(utils.HexToBytes("5AA5"))
-
-	// Data Length
-	resp.Write([]byte{0x07, 0x00})
-
-	// Command
-	resp.Write([]byte{0x84})
-
-	// Payload
-	resp.Write([]byte{byte(msg.Port)})
-	resp.Write([]byte{
-		byte(msg.OrderNumber >> 24),
-		byte(msg.OrderNumber >> 16),
-		byte(msg.OrderNumber >> 8),
-		byte(msg.OrderNumber),
-	})
-	resp.Write([]byte{msg.Result})
-
-	// Checksum
-	checksum := CalculateChecksum(resp.Bytes()[2:])
-	resp.Write([]byte{checksum})
-
-	return resp.Bytes()
-}
-
 func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitFinalStatusMessage {
 	payload := buf[5:]
 	segmentCount := payload[10]
