@@ -260,3 +260,25 @@ func RemoteStopHandler(buf []byte, header *dtos.Header, conn net.Conn) {
 		}
 	}
 }
+
+func ChargingPortDataHandler(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) {
+	// Parse the CMD088 message
+	msg := services.ChargingPortData(opt, buf, header, conn)
+
+	// Forward the Charging Port Data message to an external system (optional)
+	if msg != nil {
+		if opt.MessageForwarder != nil {
+			jsonMsg, err := json.Marshal(msg)
+			if err != nil {
+				log.Errorf("Failed to marshal Charging Port Data message: %v", err)
+				return
+			}
+			err = opt.MessageForwarder.Publish("88", jsonMsg)
+			if err != nil {
+				log.Errorf("Failed to publish Charging Port Data message: %v", err)
+			}
+		}
+	}
+
+
+}

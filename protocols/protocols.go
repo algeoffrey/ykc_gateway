@@ -2,6 +2,7 @@ package protocols
 
 import (
 	"bytes"
+	"encoding/binary"
 	hex2 "encoding/hex"
 	"fmt"
 	"strconv"
@@ -943,4 +944,68 @@ func ParseStartChargingRequest(IMEI string) []byte {
 	})
 
 	return resp.Bytes()
+}
+
+func PackChargingPortDataMessage(buf []byte, header *dtos.Header) *dtos.ChargingPortDataMessage {
+	if len(buf) < 37 { 
+		log.Error("Message too short to process CMD088")
+		return nil
+	}
+
+
+	payload := buf[6:]
+
+
+	reserved := payload[0]
+	log.Debugf("Parsed Reserved Byte: %d", reserved)
+
+	portCount := payload[1]
+	log.Debugf("Parsed Port Count: %d", portCount)
+
+	voltage := binary.BigEndian.Uint16(payload[2:4]) // Voltage in 0.1V
+	log.Debugf("Parsed Voltage: %.1fV", float64(voltage)*0.1)
+
+	temperature := payload[4]
+	log.Debugf("Parsed Temperature: %d°C", temperature)
+
+	activePort := payload[5]
+	log.Debugf("Parsed Active Port: %d", activePort)
+
+	currentTier := payload[6]
+	log.Debugf("Parsed Current Tier: %d", currentTier)
+
+	currentRate := binary.BigEndian.Uint16(payload[7:9]) // Current rate in 0.01 Yuan
+	log.Debugf("Parsed Current Rate: %.2f Yuan", float64(currentRate)*0.01)
+
+	currentPower := binary.BigEndian.Uint16(payload[9:11]) // Power in Watts
+	log.Debugf("Parsed Current Power: %dW", currentPower)
+
+	usageTime := binary.BigEndian.Uint32(payload[11:15]) // Time in seconds
+	log.Debugf("Parsed Usage Time: %d seconds", usageTime)
+
+	usedAmount := binary.BigEndian.Uint16(payload[15:17]) // Used amount in 0.01 Yuan
+	log.Debugf("Parsed Used Amount: %.2f Yuan", float64(usedAmount)*0.01)
+
+	energyUsed := binary.BigEndian.Uint32(payload[17:21]) // Energy used in 0.01 kWh
+	log.Debugf("Parsed Energy Used: %.2fkWh", float64(energyUsed)*0.01)
+
+	portTemperature := payload[21]
+	log.Debugf("Parsed Port Temperature: %d°C", portTemperature)
+
+	// Return the parsed message
+	return &dtos.ChargingPortDataMessage{
+		Header:          header,
+		Reserved:        reserved,
+		PortCount:       portCount,
+		Voltage:         voltage,
+		Temperature:     temperature,
+		ActivePort:      activePort,
+		CurrentTier:     currentTier,
+		CurrentRate:     currentRate,
+		CurrentPower:    currentPower,
+		UsageTime:       usageTime,
+		UsedAmount:      usedAmount,
+		EnergyUsed:      energyUsed,
+		PortTemperature: portTemperature,
+	}
 }

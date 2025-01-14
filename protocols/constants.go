@@ -60,4 +60,5 @@ const (
 	RemoteStart       = byte(0x83)
 	RemoteStop        = byte(0x84)
 	SubmitFinalStatus = byte(0x85)
+	PortChargingData  = byte(0x88)
 )

@@ -59,6 +59,8 @@ func HandleChargingProtocol(opt *dtos.Options, conn net.Conn) error {
 		handlers.RemoteStartHandler(buf, header, conn)
 	case protocols.RemoteStop:
 		handlers.RemoteStopHandler(buf, header, conn)
+	case protocols.PortChargingData:
+		handlers.ChargingPortDataHandler(opt, buf, header, conn)
 	// case protocols.BillingModelVerification:
 	// 	handlers.BillingModelVerificationHandler(opt, hex, header, conn)
 	// case protocols.BillingModelRequest:
