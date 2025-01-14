@@ -184,7 +184,7 @@ type DeviceLoginMessage struct {
 type RemoteStartMessage struct {
 	Header      *Header `json:"header"`
 	Port        int     `json:"port"`
-	OrderNumber uint32  `json:"orderNumber"`
+	OrderNumber string  `json:"orderNumber"`
 	StartMode   int     `json:"startMode"`
 	StartResult int     `json:"startResult"`
 }

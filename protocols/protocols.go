@@ -797,7 +797,7 @@ func PackRemoteStartMessage(buf []byte, header *dtos.Header) *dtos.RemoteStartMe
 	return &dtos.RemoteStartMessage{
 		Header:      header,
 		Port:        int(payload[0]),
-		OrderNumber: uint32(payload[1])<<24 | uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]),
+		OrderNumber: fmt.Sprintf("%02x%02x%02x%02x", payload[1], payload[2], payload[3], payload[4]),
 		StartMode:   int(payload[5]),
 		StartResult: int(payload[6]),
 	}
