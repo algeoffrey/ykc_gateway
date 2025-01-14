@@ -815,76 +815,76 @@ func PackRemoteStopMessage(buf []byte, header *dtos.Header) *dtos.RemoteStopMess
 
 func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitFinalStatusMessage {
 
-    if len(buf) < 24 { // Make sure the buffer is large enough to hold the expected data
-        log.Error("Message too short to process CMD0x85")
-        return nil
-    }
+	if len(buf) < 24 { // Make sure the buffer is large enough to hold the expected data
+		log.Error("Message too short to process CMD0x85")
+		return nil
+	}
 
-    payload := buf[5:]
+	payload := buf[5:]
 
-    // Parsing fields and logging the values
-    log.Debugf("Parsed Port: %d", payload[0])
-    port := payload[0]
+	// Parsing fields and logging the values
+	log.Debugf("Parsed Port: %d", payload[0])
+	port := payload[0]
 
-    log.Debugf("Parsed Order Number: %d", binary.BigEndian.Uint32(payload[1:5]))
-    orderNumber := binary.BigEndian.Uint32(payload[1:5])
+	log.Debugf("Parsed Order Number: %d", binary.BigEndian.Uint32(payload[1:5]))
+	orderNumber := binary.BigEndian.Uint32(payload[1:5])
 
-    log.Debugf("Parsed Charging Time: %d", binary.BigEndian.Uint32(payload[5:9]))
-    chargingTime := binary.BigEndian.Uint32(payload[5:9])
+	log.Debugf("Parsed Charging Time: %d", binary.BigEndian.Uint32(payload[5:9]))
+	chargingTime := binary.BigEndian.Uint32(payload[5:9])
 
-    log.Debugf("Parsed Electricity Usage: %d", binary.BigEndian.Uint32(payload[9:13]))
-    electricityUsage := binary.BigEndian.Uint32(payload[9:13])
+	log.Debugf("Parsed Electricity Usage: %d", binary.BigEndian.Uint32(payload[9:13]))
+	electricityUsage := binary.BigEndian.Uint32(payload[9:13])
 
-    log.Debugf("Parsed Usage Cost: %d", binary.BigEndian.Uint32(payload[13:17]))
-    usageCost := binary.BigEndian.Uint32(payload[13:17])
+	log.Debugf("Parsed Usage Cost: %d", binary.BigEndian.Uint32(payload[13:17]))
+	usageCost := binary.BigEndian.Uint32(payload[13:17])
 
-    stopReason := payload[17]
-    log.Debugf("Parsed Stop Reason: %d", stopReason)
+	stopReason := payload[17]
+	log.Debugf("Parsed Stop Reason: %d", stopReason)
 
-    log.Debugf("Parsed Stop Power: %d", binary.BigEndian.Uint16(payload[18:20]))
-    stopPower := binary.BigEndian.Uint16(payload[18:20])
+	log.Debugf("Parsed Stop Power: %d", binary.BigEndian.Uint16(payload[18:20]))
+	stopPower := binary.BigEndian.Uint16(payload[18:20])
 
-    log.Debugf("Parsed Card ID: %d", binary.BigEndian.Uint32(payload[20:24]))
-    cardID := binary.BigEndian.Uint32(payload[20:24])
+	log.Debugf("Parsed Card ID: %d", binary.BigEndian.Uint32(payload[20:24]))
+	cardID := binary.BigEndian.Uint32(payload[20:24])
 
-    segmentCount := payload[24]
-    log.Debugf("Parsed Segment Count: %d", segmentCount)
+	segmentCount := payload[24]
+	log.Debugf("Parsed Segment Count: %d", segmentCount)
 
-    // Parsing segment durations and prices using the segment count
-    segmentDurations := parseSegments(payload[25:], int(segmentCount))
-    log.Debugf("Parsed Segment Durations: %v", segmentDurations)
+	// Parsing segment durations and prices using the segment count
+	segmentDurations := parseSegments(payload[25:], int(segmentCount))
+	log.Debugf("Parsed Segment Durations: %v", segmentDurations)
 
-    segmentPrices := parseSegments(payload[25+int(segmentCount)*2:], int(segmentCount))
-    log.Debugf("Parsed Segment Prices: %v", segmentPrices)
+	segmentPrices := parseSegments(payload[25+int(segmentCount)*2:], int(segmentCount))
+	log.Debugf("Parsed Segment Prices: %v", segmentPrices)
 
-    reserved := payload[25+int(segmentCount)*4:]
-    log.Debugf("Parsed Reserved: %v", reserved)
+	reserved := payload[25+int(segmentCount)*4:]
+	log.Debugf("Parsed Reserved: %v", reserved)
 
-    // Return the parsed message
-    return &dtos.SubmitFinalStatusMessage{
-        Header:           header,
-        Port:             port,
-        OrderNumber:      orderNumber,
-        ChargingTime:     chargingTime,
-        ElectricityUsage: electricityUsage,
-        UsageCost:        usageCost,
-        StopReason:       stopReason,
-        StopPower:        stopPower,
-        CardID:           cardID,
-        SegmentCount:     segmentCount,
-        SegmentDurations: segmentDurations,
-        SegmentPrices:    segmentPrices,
-        Reserved:         reserved,
-    }
+	// Return the parsed message
+	return &dtos.SubmitFinalStatusMessage{
+		Header:           header,
+		Port:             port,
+		OrderNumber:      strconv.FormatUint(uint64(orderNumber), 10),
+		ChargingTime:     chargingTime,
+		ElectricityUsage: electricityUsage,
+		UsageCost:        usageCost,
+		StopReason:       stopReason,
+		StopPower:        stopPower,
+		CardID:           cardID,
+		SegmentCount:     segmentCount,
+		SegmentDurations: segmentDurations,
+		SegmentPrices:    segmentPrices,
+		Reserved:         reserved,
+	}
 
 }
 
 func parseSegments(data []byte, count int) []uint16 {
-    segments := make([]uint16, count)
-    for i := 0; i < count; i++ {
-        segments[i] = binary.BigEndian.Uint16(data[i*2 : i*2+2])
-    }
-    return segments
+	segments := make([]uint16, count)
+	for i := 0; i < count; i++ {
+		segments[i] = binary.BigEndian.Uint16(data[i*2 : i*2+2])
+	}
+	return segments
 }
 
 func PackSubmitFinalStatusResponse() []byte {
