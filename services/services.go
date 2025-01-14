@@ -345,7 +345,7 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 			Encrypted: false,
 		},
 		HeartbeatPeriod: heartbeatPeriod, // Valid interval
-		Result:          0xF0,            // Login successful
+		Result:          0x00,            // Login successful
 	}
 
 	// // Pack the response message
