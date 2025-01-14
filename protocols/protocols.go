@@ -179,7 +179,7 @@ func PackBillingModelVerificationResponseMessage(msg *dtos.BillingModelVerificat
 }
 
 func PackHeartbeatMessage(buf []byte, header *dtos.Header) *dtos.HeartbeatMessage {
-	payload := buf[5:] // Skip the header (first 5 bytes)
+	payload := buf[6:] // Skip the header (first 6 bytes)
 
 	// Parse fields
 	signalValue := int(payload[0])
