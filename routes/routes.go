@@ -55,10 +55,10 @@ func HandleChargingProtocol(opt *dtos.Options, conn net.Conn) error {
 		handlers.DeviceLoginHandler(opt, buf, header, conn)
 	case protocols.SubmitFinalStatus:
 		handlers.SubmitFinalStatusHandler(opt, buf, header, conn)
-	case protocols.RemoteStart:
-		handlers.RemoteStartHandler(buf, header, conn)
-	case protocols.RemoteStop:
-		handlers.RemoteStopHandler(buf, header, conn)
+	// case protocols.RemoteStart:
+	// 	handlers.RemoteStartHandler(buf, header, conn)
+	// case protocols.RemoteStop:
+	// 	handlers.RemoteStopHandler(buf, header, conn)
 	case protocols.PortChargingData:
 		handlers.ChargingPortDataHandler(opt, buf, header, conn)
 	// case protocols.BillingModelVerification:
