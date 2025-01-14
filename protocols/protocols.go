@@ -808,7 +808,7 @@ func PackRemoteStopMessage(buf []byte, header *dtos.Header) *dtos.RemoteStopMess
 	return &dtos.RemoteStopMessage{
 		Header:      header,
 		Port:        int(payload[0]),
-		OrderNumber: string(payload[1:5]),
+		OrderNumber: hex2.EncodeToString(payload[1:5]),
 	}
 }
 
