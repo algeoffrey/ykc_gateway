@@ -322,9 +322,6 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 		log.Error("Failed to parse Device Login message due to checksum mismatch or invalid buffer")
 		return nil, nil
 	}
-
-	log.Debugf("Raw Buffer: %x", buf)
-
 	// Log the extracted details
 	log.WithFields(log.Fields{
 		"imei":            msg.IMEI,

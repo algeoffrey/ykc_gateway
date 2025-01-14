@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"sync"
 	"ykc-proxy-server/dtos"
@@ -33,7 +32,6 @@ func GetClientByIPAddress(ipAddress string) (net.Conn, string, error) {
 
 	clients.Range(func(key, value interface{}) bool {
 		clientInfo := key.(dtos.ClientInfo) // Cast the key to ClientInfo
-		fmt.Println(clientInfo)
 		if clientInfo.IPAddress == ipAddress {
 			foundConn = value.(net.Conn) // Cast the value to net.Conn
 			imei = clientInfo.IMEI
