@@ -27,7 +27,7 @@ func StopCharging(IPAddress string, orderNumber string) error {
 	if err != nil {
 		return err
 	}
-	orderNumberHex := utils.ASCIIToHex(orderNumber)
+	orderNumberHex, _ := hex.DecodeString(orderNumber)
 	packet := protocols.ParseStopChargingRequest(imei, orderNumberHex)
 	err = utils.SendMessage(conn, packet)
 	if err != nil {
