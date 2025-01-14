@@ -827,25 +827,25 @@ func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitF
 	port := payload[0]
 
 	log.Debugf("Parsed Order Number: %d", binary.BigEndian.Uint32(payload[1:5]))
-	orderNumber := binary.BigEndian.Uint32(payload[1:5])
+	orderNumber := binary.LittleEndian.Uint32(payload[1:5])
 
 	log.Debugf("Parsed Charging Time: %d", binary.BigEndian.Uint32(payload[5:9]))
-	chargingTime := binary.BigEndian.Uint32(payload[5:9])
+	chargingTime := binary.LittleEndian.Uint32(payload[5:9])
 
 	log.Debugf("Parsed Electricity Usage: %d", binary.BigEndian.Uint32(payload[9:13]))
-	electricityUsage := binary.BigEndian.Uint32(payload[9:13])
+	electricityUsage := binary.LittleEndian.Uint32(payload[9:13])
 
 	log.Debugf("Parsed Usage Cost: %d", binary.BigEndian.Uint32(payload[13:17]))
-	usageCost := binary.BigEndian.Uint32(payload[13:17])
+	usageCost := binary.LittleEndian.Uint32(payload[13:17])
 
 	stopReason := payload[17]
 	log.Debugf("Parsed Stop Reason: %d", stopReason)
 
 	log.Debugf("Parsed Stop Power: %d", binary.BigEndian.Uint16(payload[18:20]))
-	stopPower := binary.BigEndian.Uint16(payload[18:20])
+	stopPower := binary.LittleEndian.Uint16(payload[18:20])
 
 	log.Debugf("Parsed Card ID: %d", binary.BigEndian.Uint32(payload[20:24]))
-	cardID := binary.BigEndian.Uint32(payload[20:24])
+	cardID := binary.LittleEndian.Uint32(payload[20:24])
 
 	segmentCount := payload[24]
 	log.Debugf("Parsed Segment Count: %d", segmentCount)
