@@ -820,7 +820,7 @@ func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitF
 		return nil
 	}
 
-	payload := buf[5:]
+	payload := buf[6:]
 
 	// Parsing fields and logging the values
 	log.Debugf("Parsed Port: %d", payload[0])
