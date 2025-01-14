@@ -916,9 +916,7 @@ func ParseStartChargingRequest(IMEI string, hexPort []byte, orderNumberHex []byt
 
 	//PORT
 	resp.Write(hexPort)
-
-	// Ensure full order number is written (00123456)
-	resp.Write([]byte{0x30, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36}) // Fixed 8-byte order number
+	resp.Write(orderNumberHex)
 
 	resp.Write([]byte{
 		0x01,                   // payment
