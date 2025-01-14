@@ -933,10 +933,10 @@ func ParseStartChargingRequest(IMEI string) []byte {
 	resp.Write([]byte{0x01})
 
 	resp.Write([]byte{
-		0x01, 0x05, 0x01, 0x01, // order number
+		0x12, 0x34, 0x56, 0x00, // order number (123456)
 		0x01,                   // payment
 		0x01, 0x01, 0x01, 0x01, // card number
-		0x01,                   // chargin mode
+		0x03,                   // chargin mode
 		0x3C, 0x00, 0x00, 0x00, // time based (60 seconds)
 		0x01, 0x01, 0x01, 0x01, // available amount
 		0xED, // checksum
