@@ -237,15 +237,15 @@ func DeviceLoginHandler(opt *dtos.Options, buf []byte, header *dtos.Header, conn
 }
 
 func RemoteStartHandler(buf []byte, header *dtos.Header, conn net.Conn) {
-	data := services.RemoteStart(buf, header, conn)
-	if data != nil {
-		err := utils.SendMessage(conn, data)
-		if err != nil {
-			log.Errorf("Failed to send Remote Start response: %v", err)
-		} else {
-			log.Debug("Sent Remote Start response successfully")
-		}
-	}
+	services.RemoteStart(buf, header, conn)
+	// if data != nil {
+	// 	err := utils.SendMessage(conn, data)
+	// 	if err != nil {
+	// 		log.Errorf("Failed to send Remote Start response: %v", err)
+	// 	} else {
+	// 		log.Debug("Sent Remote Start response successfully")
+	// 	}
+	// }
 
 }
 
@@ -279,6 +279,5 @@ func ChargingPortDataHandler(opt *dtos.Options, buf []byte, header *dtos.Header,
 			}
 		}
 	}
-
 
 }

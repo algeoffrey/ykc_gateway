@@ -792,17 +792,14 @@ func PackDeviceLoginResponseMessage(msg *dtos.DeviceLoginResponseMessage) []byte
 
 func PackRemoteStartMessage(buf []byte, header *dtos.Header) *dtos.RemoteStartMessage {
 	utils.PrintHexAndByte(buf)
-	payload := buf[5:] // Skip header bytes
+	payload := buf[21:] // Skip header bytes
 
 	return &dtos.RemoteStartMessage{
-		Header:          header,
-		Port:            int(payload[0]),
-		OrderNumber:     uint32(payload[1])<<24 | uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]),
-		StartMethod:     int(payload[5]),
-		CardNumber:      uint32(payload[6])<<24 | uint32(payload[7])<<16 | uint32(payload[8])<<8 | uint32(payload[9]),
-		ChargingMethod:  int(payload[10]),
-		ChargingParam:   uint32(payload[11])<<24 | uint32(payload[12])<<16 | uint32(payload[13])<<8 | uint32(payload[14]),
-		AvailableAmount: uint32(payload[15])<<24 | uint32(payload[16])<<16 | uint32(payload[17])<<8 | uint32(payload[18]),
+		Header:      header,
+		Port:        int(payload[0]),
+		OrderNumber: uint32(payload[1])<<24 | uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]),
+		StartMode:   int(payload[5]),
+		StartResult: int(payload[6]),
 	}
 }
 
@@ -947,14 +944,12 @@ func ParseStartChargingRequest(IMEI string) []byte {
 }
 
 func PackChargingPortDataMessage(buf []byte, header *dtos.Header) *dtos.ChargingPortDataMessage {
-	if len(buf) < 37 { 
+	if len(buf) < 37 {
 		log.Error("Message too short to process CMD088")
 		return nil
 	}
 
-
 	payload := buf[6:]
-
 
 	reserved := payload[0]
 	log.Debugf("Parsed Reserved Byte: %d", reserved)

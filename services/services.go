@@ -352,34 +352,30 @@ func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Co
 
 }
 
-func RemoteStart(buf []byte, header *dtos.Header, conn net.Conn) []byte {
+func RemoteStart(buf []byte, header *dtos.Header, conn net.Conn) {
 	msg := protocols.PackRemoteStartMessage(buf, header)
 	if msg == nil {
 		log.Error("Failed to parse Remote Start message")
-		return nil
 	}
 
 	log.WithFields(log.Fields{
-		"port":            msg.Port,
-		"orderNumber":     msg.OrderNumber,
-		"startMethod":     msg.StartMethod,
-		"cardNumber":      msg.CardNumber,
-		"chargingMethod":  msg.ChargingMethod,
-		"chargingParam":   msg.ChargingParam,
-		"availableAmount": msg.AvailableAmount,
+		"port":        msg.Port,
+		"orderNumber": msg.OrderNumber,
+		"startMode":   msg.StartMode,
+		"startResult": msg.StartResult,
 	}).Debug("[83] Remote Start message")
 
 	// Auto Response
-	response := &dtos.RemoteStartResponseMessage{
-		Header:      header,
-		Port:        msg.Port,
-		OrderNumber: msg.OrderNumber,
-		StartMethod: msg.StartMethod,
-		Result:      0x00, // 0x00 for success
-	}
+	// response := &dtos.RemoteStartResponseMessage{
+	// 	Header:      header,
+	// 	Port:        msg.Port,
+	// 	OrderNumber: msg.OrderNumber,
+	// 	StartMethod: msg.StartMethod,
+	// 	Result:      0x00, // 0x00 for success
+	// }
 
-	data := protocols.PackRemoteStartResponseMessage(response)
-	return data
+	// data := protocols.PackRemoteStartResponseMessage(response)
+	// return data
 
 }
 
@@ -458,7 +454,6 @@ func ChargingPortData(opt *dtos.Options, buf []byte, header *dtos.Header, conn n
 
 	return msg
 }
-
 
 func SendRemoteShutdownRequest(req *dtos.RemoteShutdownRequestMessage) error {
 	c, _, err := utils.GetClientByIPAddress(req.Id)

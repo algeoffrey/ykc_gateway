@@ -182,14 +182,11 @@ type DeviceLoginMessage struct {
 }
 
 type RemoteStartMessage struct {
-	Header          *Header `json:"header"`
-	Port            int     `json:"port"`
-	OrderNumber     uint32  `json:"orderNumber"`
-	StartMethod     int     `json:"startMethod"`
-	CardNumber      uint32  `json:"cardNumber"`
-	ChargingMethod  int     `json:"chargingMethod"`
-	ChargingParam   uint32  `json:"chargingParam"`
-	AvailableAmount uint32  `json:"availableAmount"`
+	Header      *Header `json:"header"`
+	Port        int     `json:"port"`
+	OrderNumber uint32  `json:"orderNumber"`
+	StartMode   int     `json:"startMode"`
+	StartResult int     `json:"startResult"`
 }
 
 type RemoteStopMessage struct {
