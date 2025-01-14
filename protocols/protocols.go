@@ -820,7 +820,7 @@ func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitF
 	return &dtos.SubmitFinalStatusMessage{
 		Header:           header,
 		Port:             payload[0],
-		OrderNumber:      uint32(payload[1])<<24 | uint32(payload[2])<<16 | uint32(payload[3])<<8 | uint32(payload[4]),
+		OrderNumber:      fmt.Sprintf("%02x%02x%02x%02x", payload[1], payload[2], payload[3], payload[4]),
 		ChargingTime:     uint32(payload[5])<<24 | uint32(payload[6])<<16 | uint32(payload[7])<<8 | uint32(payload[8]),
 		ElectricityUsage: uint32(payload[9])<<24 | uint32(payload[10])<<16 | uint32(payload[11])<<8 | uint32(payload[12]),
 		UsageCost:        uint32(payload[13])<<24 | uint32(payload[14])<<16 | uint32(payload[15])<<8 | uint32(payload[16]),
@@ -845,11 +845,10 @@ func parseSegments(data []byte, count int) []uint16 {
 func PackSubmitFinalStatusResponse(msg *dtos.SubmitFinalStatusResponse) []byte {
 	resp := &bytes.Buffer{}
 	resp.Write(utils.HexToBytes("5AA5"))
-	resp.Write([]byte{0x02, 0x00})
-	resp.Write([]byte{SubmitFinalStatus})
-	resp.Write([]byte{msg.Result})
-	checksum := CalculateChecksum(resp.Bytes()[2:])
-	resp.Write([]byte{checksum})
+	resp.Write([]byte{0x01})
+	resp.Write([]byte{
+		0x00, 0x12, 0x34, 0x56, // order number (00123456)
+	})
 	return resp.Bytes()
 }
 

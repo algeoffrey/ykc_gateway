@@ -198,7 +198,7 @@ type RemoteStopMessage struct {
 type SubmitFinalStatusMessage struct {
 	Header           *Header  `json:"header"`
 	Port             byte     `json:"port"`
-	OrderNumber      uint32   `json:"orderNumber"`
+	OrderNumber      string   `json:"orderNumber"`
 	ChargingTime     uint32   `json:"chargingTime"`
 	ElectricityUsage uint32   `json:"electricityUsage"`
 	UsageCost        uint32   `json:"usageCost"`
