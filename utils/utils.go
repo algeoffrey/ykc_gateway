@@ -29,9 +29,6 @@ func PrintHexAndByte(data []byte) {
 
 	// Print the hexadecimal string in groups of 2 bytes
 	fmt.Printf("Hex: %s\n", formattedHex)
-
-	// Print the byte slice
-	fmt.Printf("Byte: %v\n", data)
 }
 
 var gabyCRCHi = []byte{

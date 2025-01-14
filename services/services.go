@@ -365,25 +365,12 @@ func RemoteStart(buf []byte, header *dtos.Header, conn net.Conn) {
 		"startResult": msg.StartResult,
 	}).Debug("[83] Remote Start message")
 
-	// Auto Response
-	// response := &dtos.RemoteStartResponseMessage{
-	// 	Header:      header,
-	// 	Port:        msg.Port,
-	// 	OrderNumber: msg.OrderNumber,
-	// 	StartMethod: msg.StartMethod,
-	// 	Result:      0x00, // 0x00 for success
-	// }
-
-	// data := protocols.PackRemoteStartResponseMessage(response)
-	// return data
-
 }
 
-func RemoteStop(buf []byte, header *dtos.Header, conn net.Conn) []byte {
+func RemoteStop(buf []byte, header *dtos.Header, conn net.Conn) {
 	msg := protocols.PackRemoteStopMessage(buf, header)
 	if msg == nil {
 		log.Error("Failed to parse Remote Stop message")
-		return nil
 	}
 
 	log.WithFields(log.Fields{
@@ -392,14 +379,14 @@ func RemoteStop(buf []byte, header *dtos.Header, conn net.Conn) []byte {
 	}).Debug("[84] Remote Stop message")
 
 	// Auto Response
-	response := &dtos.RemoteStopResponseMessage{
-		Header:      header,
-		Port:        msg.Port,
-		OrderNumber: msg.OrderNumber,
-		Result:      0x00, // 0x00 for success, other values for specific errors
-	}
-	data := protocols.PackRemoteStopResponseMessage(response)
-	return data
+	// response := &dtos.RemoteStopResponseMessage{
+	// 	Header:      header,
+	// 	Port:        msg.Port,
+	// 	OrderNumber: msg.OrderNumber,
+	// 	Result:      0x00, // 0x00 for success, other values for specific errors
+	// }
+	// data := protocols.PackRemoteStopResponseMessage(response)
+	// return data
 }
 
 func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) []byte {

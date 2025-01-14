@@ -792,7 +792,7 @@ func PackDeviceLoginResponseMessage(msg *dtos.DeviceLoginResponseMessage) []byte
 
 func PackRemoteStartMessage(buf []byte, header *dtos.Header) *dtos.RemoteStartMessage {
 	utils.PrintHexAndByte(buf)
-	payload := buf[21:] // Skip header bytes
+	payload := buf[21:] // Skip header and imei bytes
 
 	return &dtos.RemoteStartMessage{
 		Header:      header,
@@ -801,35 +801,6 @@ func PackRemoteStartMessage(buf []byte, header *dtos.Header) *dtos.RemoteStartMe
 		StartMode:   int(payload[5]),
 		StartResult: int(payload[6]),
 	}
-}
-
-func PackRemoteStartResponseMessage(msg *dtos.RemoteStartResponseMessage) []byte {
-	var resp bytes.Buffer
-
-	// Frame Header (5AA5)
-	resp.Write(utils.HexToBytes("5AA5"))
-
-	// Data Length (7 bytes total)
-	resp.Write([]byte{0x07, 0x00})
-
-	// Command (0x83)
-	resp.Write([]byte{RemoteStart})
-
-	// Payload
-	resp.Write([]byte{byte(msg.Port)})
-	resp.Write([]byte{
-		byte(msg.OrderNumber >> 24),
-		byte(msg.OrderNumber >> 16),
-		byte(msg.OrderNumber >> 8),
-		byte(msg.OrderNumber),
-	})
-	resp.Write([]byte{byte(msg.StartMethod), byte(msg.Result)})
-
-	// Calculate and append checksum
-	checksum := CalculateChecksum(resp.Bytes()[2:])
-	resp.Write([]byte{checksum})
-
-	return resp.Bytes()
 }
 
 func PackRemoteStopMessage(buf []byte, header *dtos.Header) *dtos.RemoteStopMessage {
