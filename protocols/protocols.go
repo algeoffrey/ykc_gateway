@@ -842,7 +842,7 @@ func parseSegments(data []byte, count int) []uint16 {
 	return segments
 }
 
-func PackSubmitFinalStatusResponse(msg *dtos.SubmitFinalStatusResponse) []byte {
+func PackSubmitFinalStatusResponse() []byte {
 	resp := &bytes.Buffer{}
 	resp.Write(utils.HexToBytes("5AA5"))
 	resp.Write([]byte{0x01})

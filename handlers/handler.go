@@ -207,6 +207,7 @@ func RemoteRebootRequestMessageHandler(c *gin.Context) {
 func SubmitFinalStatusHandler(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn,
 ) {
 	data := services.SubmitFinalStatus(opt, buf, header, conn)
+	utils.PrintHex(data)
 	err := utils.SendMessage(conn, data)
 	if err != nil {
 		log.Errorf("Failed to send Submit Final Status response: %v", err)

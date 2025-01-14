@@ -398,13 +398,7 @@ func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn 
 		"segmentPrices":    msg.SegmentPrices,
 	}).Debug("[85] Submit Final Status message")
 
-	// Auto Response
-	response := &dtos.SubmitFinalStatusResponse{
-		Header: header,
-		Result: 0x00, // Success
-	}
-
-	data := protocols.PackSubmitFinalStatusResponse(response)
+	data := protocols.PackSubmitFinalStatusResponse()
 	return data
 
 }

@@ -211,11 +211,6 @@ type SubmitFinalStatusMessage struct {
 	Reserved         []byte   `json:"reserved"`
 }
 
-type SubmitFinalStatusResponse struct {
-	Header *Header `json:"header"`
-	Result byte    `json:"result"`
-}
-
 type ChargingPortDataMessage struct {
 	Header          *Header `json:"header"`
 	Reserved        byte    `json:"reserved"`
