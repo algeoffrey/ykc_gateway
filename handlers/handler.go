@@ -79,9 +79,9 @@ func VerificationHandler(opt *dtos.Options, buf []byte, hex []string, header *dt
 }
 
 func HeartbeatHandler(buf []byte, header *dtos.Header, conn net.Conn) {
-	_ = services.Hearthbeat(buf, header, conn)
+	services.Hearthbeat(buf, header, conn)
 	// Send Heartbeat Response
-	_ = services.SendHeartbeatResponse(conn, header)
+	// _ = services.SendHeartbeatResponse(conn, header)
 }
 
 func BillingModelVerificationHandler(opt *dtos.Options, hex []string, header *dtos.Header, conn net.Conn) {

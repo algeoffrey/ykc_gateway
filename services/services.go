@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net"
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/protocols"
@@ -59,6 +60,13 @@ func SendHeartbeatResponse(conn net.Conn, header *dtos.Header) error {
 }
 
 func Hearthbeat(buf []byte, header *dtos.Header, conn net.Conn) *dtos.HeartbeatMessage {
+	IPAddress := conn.RemoteAddr().String()
+	conn, imei, err := utils.GetClientByIPAddress(IPAddress)
+	if err != nil {
+		return nil
+	}
+	fmt.Println(imei)
+	fmt.Println(IPAddress)
 	msg := protocols.PackHeartbeatMessage(buf, header)
 	if msg == nil {
 		log.Error("Failed to parse Heartbeat message")
