@@ -886,7 +886,7 @@ func PackSubmitFinalStatusResponse(hexPort []byte, hexOrderNumber []byte) []byte
 
 	resp := &bytes.Buffer{}
 	resp.Write([]byte{0x5A, 0xA5})
-	// resp.Write([]byte{0x85, 0x00})
+	resp.Write([]byte{0x85, 0x00})
 	resp.Write(hexPort)
 	// resp.Write([]byte{
 	// 	0x00, 0x12, 0x34, 0x56, // order number (00123456)
