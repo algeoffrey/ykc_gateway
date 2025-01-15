@@ -966,37 +966,37 @@ func PackChargingPortDataMessage(buf []byte, header *dtos.Header) *dtos.Charging
 
 	payload := buf[6:]
 
-	portCount := payload[1]
+	portCount := payload[0]
 	log.Debugf("Parsed Port Count: %d", portCount)
 
-	voltage := binary.LittleEndian.Uint16(payload[2:4]) // Voltage in 0.1V
+	voltage := binary.LittleEndian.Uint16(payload[1:3]) // Voltage in 0.1V
 	log.Debugf("Parsed Voltage: %.1fV", float64(voltage)*0.1)
 
-	temperature := payload[4]
+	temperature := payload[3]
 	log.Debugf("Parsed Temperature: %d°C", temperature)
 
-	activePort := payload[5]
+	activePort := payload[4]
 	log.Debugf("Parsed Active Port: %d", activePort)
 
-	currentTier := payload[6]
+	currentTier := payload[5]
 	log.Debugf("Parsed Current Tier: %d", currentTier)
 
-	currentRate := binary.LittleEndian.Uint16(payload[7:9]) // Current rate in 0.01 Yuan
+	currentRate := binary.LittleEndian.Uint16(payload[6:8]) // Current rate in 0.01 Yuan
 	log.Debugf("Parsed Current Rate: %.2f Yuan", float64(currentRate)*0.01)
 
-	currentPower := binary.LittleEndian.Uint16(payload[9:11]) // Power in Watts
+	currentPower := binary.LittleEndian.Uint16(payload[8:10]) // Power in Watts
 	log.Debugf("Parsed Current Power: %dW", currentPower)
 
-	usageTime := binary.LittleEndian.Uint32(payload[11:15]) // Time in seconds
+	usageTime := binary.LittleEndian.Uint32(payload[10:14]) // Time in seconds
 	log.Debugf("Parsed Usage Time: %d seconds", usageTime)
 
-	usedAmount := binary.LittleEndian.Uint16(payload[15:17]) // Used amount in 0.01 Yuan
+	usedAmount := binary.LittleEndian.Uint16(payload[14:16]) // Used amount in 0.01 Yuan
 	log.Debugf("Parsed Used Amount: %.2f Yuan", float64(usedAmount)*0.01)
 
-	energyUsed := binary.LittleEndian.Uint32(payload[17:21]) // Energy used in 0.01 kWh
+	energyUsed := binary.LittleEndian.Uint32(payload[16:20]) // Energy used in 0.01 kWh
 	log.Debugf("Parsed Energy Used: %.2fkWh", float64(energyUsed)*0.01)
 
-	portTemperature := payload[21]
+	portTemperature := payload[20]
 	log.Debugf("Parsed Port Temperature: %d°C", portTemperature)
 
 	// Return the parsed message
