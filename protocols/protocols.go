@@ -892,6 +892,10 @@ func PackSubmitFinalStatusResponse(hexPort []byte, hexOrderNumber []byte) []byte
 	// 	0x00, 0x12, 0x34, 0x56, // order number (00123456)
 	// })
 	resp.Write(hexOrderNumber)
+
+	// Print accumulated buffer in hex format
+	log.Debugf("Submit Final Status Response buffer (hex): %X", resp.Bytes())
+
 	return resp.Bytes()
 }
 
