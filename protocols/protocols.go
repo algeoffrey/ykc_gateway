@@ -947,7 +947,7 @@ func ParseStopChargingRequest(IMEI string, orderNumberHex []byte) []byte {
 	// resp.Write(imei)
 
 	//PORT
-	resp.Write([]byte{0x02})
+	resp.Write([]byte{0x01})
 
 	resp.Write(orderNumberHex)
 
