@@ -208,7 +208,6 @@ type SubmitFinalStatusMessage struct {
 	SegmentCount     byte     `json:"segmentCount"`
 	SegmentDurations []uint16 `json:"segmentDurations"`
 	SegmentPrices    []uint16 `json:"segmentPrices"`
-	Reserved         []byte   `json:"reserved"`
 }
 
 type ChargingPortDataMessage struct {

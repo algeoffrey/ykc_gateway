@@ -856,9 +856,6 @@ func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitF
 	segmentPrices := parseSegments(payload[25+int(segmentCount)*2:], int(segmentCount))
 	log.Debugf("Parsed Segment Prices: %v", segmentPrices)
 
-	reserved := payload[25+int(segmentCount)*4:]
-	log.Debugf("Parsed Reserved: %v", reserved)
-
 	// Return the parsed message
 	return &dtos.SubmitFinalStatusMessage{
 		Header:           header,
@@ -873,7 +870,6 @@ func PackSubmitFinalStatusMessage(buf []byte, header *dtos.Header) *dtos.SubmitF
 		SegmentCount:     segmentCount,
 		SegmentDurations: segmentDurations,
 		SegmentPrices:    segmentPrices,
-		Reserved:         reserved,
 	}
 
 }
