@@ -966,13 +966,10 @@ func PackChargingPortDataMessage(buf []byte, header *dtos.Header) *dtos.Charging
 
 	payload := buf[6:]
 
-	reserved := payload[0]
-	log.Debugf("Parsed Reserved Byte: %d", reserved)
-
 	portCount := payload[1]
 	log.Debugf("Parsed Port Count: %d", portCount)
 
-	voltage := binary.BigEndian.Uint16(payload[2:4]) // Voltage in 0.1V
+	voltage := binary.LittleEndian.Uint16(payload[2:4]) // Voltage in 0.1V
 	log.Debugf("Parsed Voltage: %.1fV", float64(voltage)*0.1)
 
 	temperature := payload[4]
@@ -984,19 +981,19 @@ func PackChargingPortDataMessage(buf []byte, header *dtos.Header) *dtos.Charging
 	currentTier := payload[6]
 	log.Debugf("Parsed Current Tier: %d", currentTier)
 
-	currentRate := binary.BigEndian.Uint16(payload[7:9]) // Current rate in 0.01 Yuan
+	currentRate := binary.LittleEndian.Uint16(payload[7:9]) // Current rate in 0.01 Yuan
 	log.Debugf("Parsed Current Rate: %.2f Yuan", float64(currentRate)*0.01)
 
-	currentPower := binary.BigEndian.Uint16(payload[9:11]) // Power in Watts
+	currentPower := binary.LittleEndian.Uint16(payload[9:11]) // Power in Watts
 	log.Debugf("Parsed Current Power: %dW", currentPower)
 
-	usageTime := binary.BigEndian.Uint32(payload[11:15]) // Time in seconds
+	usageTime := binary.LittleEndian.Uint32(payload[11:15]) // Time in seconds
 	log.Debugf("Parsed Usage Time: %d seconds", usageTime)
 
-	usedAmount := binary.BigEndian.Uint16(payload[15:17]) // Used amount in 0.01 Yuan
+	usedAmount := binary.LittleEndian.Uint16(payload[15:17]) // Used amount in 0.01 Yuan
 	log.Debugf("Parsed Used Amount: %.2f Yuan", float64(usedAmount)*0.01)
 
-	energyUsed := binary.BigEndian.Uint32(payload[17:21]) // Energy used in 0.01 kWh
+	energyUsed := binary.LittleEndian.Uint32(payload[17:21]) // Energy used in 0.01 kWh
 	log.Debugf("Parsed Energy Used: %.2fkWh", float64(energyUsed)*0.01)
 
 	portTemperature := payload[21]
@@ -1005,7 +1002,6 @@ func PackChargingPortDataMessage(buf []byte, header *dtos.Header) *dtos.Charging
 	// Return the parsed message
 	return &dtos.ChargingPortDataMessage{
 		Header:          header,
-		Reserved:        reserved,
 		PortCount:       portCount,
 		Voltage:         voltage,
 		Temperature:     temperature,

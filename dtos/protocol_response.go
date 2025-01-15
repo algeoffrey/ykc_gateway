@@ -213,7 +213,6 @@ type SubmitFinalStatusMessage struct {
 
 type ChargingPortDataMessage struct {
 	Header          *Header `json:"header"`
-	Reserved        byte    `json:"reserved"`
 	PortCount       byte    `json:"portCount"`
 	Voltage         uint16  `json:"voltage"`
 	Temperature     byte    `json:"temperature"`

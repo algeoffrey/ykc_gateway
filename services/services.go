@@ -417,7 +417,6 @@ func ChargingPortData(opt *dtos.Options, buf []byte, header *dtos.Header, conn n
 
 	log.WithFields(log.Fields{
 		"header":          msg.Header,
-		"reserved":        msg.Reserved,
 		"portCount":       msg.PortCount,
 		"voltage":         msg.Voltage,
 		"temperature":     msg.Temperature,
