@@ -402,7 +402,9 @@ func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn 
 		"segmentPrices":    msg.SegmentPrices,
 	}).Debug("[85] Submit Final Status message")
 
-	data := protocols.PackSubmitFinalStatusResponse()
+	hexPort := []byte{buf[6]}
+	hexOrderNumber := buf[7:11]
+	data := protocols.PackSubmitFinalStatusResponse(hexPort, hexOrderNumber)
 	return data
 
 }

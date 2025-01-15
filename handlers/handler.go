@@ -61,7 +61,12 @@ func StopChargingHandler(c *gin.Context) {
 		return
 	}
 
-	err := services.StopCharging(req.ClientID, req.OrderNumber)
+	if req.Port == 0 {
+		c.JSON(400, gin.H{"error": "port is required"})
+		return
+	}
+
+	err := services.StopCharging(req.ClientID, req.Port, req.OrderNumber)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return

@@ -882,15 +882,16 @@ func parseSegments(data []byte, count int) []uint16 {
 	return segments
 }
 
-func PackSubmitFinalStatusResponse() []byte {
+func PackSubmitFinalStatusResponse(hexPort []byte, hexOrderNumber []byte) []byte {
 
 	resp := &bytes.Buffer{}
-	resp.Write(utils.HexToBytes("5AA5"))
+	resp.Write([]byte{0x5A, 0xA5})
 	// resp.Write([]byte{0x85, 0x00})
-	resp.Write([]byte{0x01})
-	resp.Write([]byte{
-		0x00, 0x12, 0x34, 0x56, // order number (00123456)
-	})
+	resp.Write(hexPort)
+	// resp.Write([]byte{
+	// 	0x00, 0x12, 0x34, 0x56, // order number (00123456)
+	// })
+	resp.Write(hexOrderNumber)
 	return resp.Bytes()
 }
 
@@ -926,7 +927,7 @@ func ParseStartChargingRequest(IMEI string, hexPort []byte, orderNumberHex []byt
 	return resp.Bytes()
 }
 
-func ParseStopChargingRequest(IMEI string, orderNumberHex []byte) []byte {
+func ParseStopChargingRequest(IMEI string, orderNumberHex []byte, hexPort []byte) []byte {
 	var resp bytes.Buffer
 
 	// imei := utils.ASCIIToHex(IMEI)
@@ -934,7 +935,7 @@ func ParseStopChargingRequest(IMEI string, orderNumberHex []byte) []byte {
 	resp.Write([]byte{0x5A, 0xA5})
 
 	// Data Length (12 bytes)
-	resp.Write([]byte{0x16, 0x00})
+	resp.Write([]byte{0x12, 0x00})
 
 	// Command (84)
 	resp.Write([]byte{RemoteStop, 0x00})
@@ -943,7 +944,7 @@ func ParseStopChargingRequest(IMEI string, orderNumberHex []byte) []byte {
 	// resp.Write(imei)
 
 	//PORT
-	resp.Write([]byte{0x01})
+	resp.Write(hexPort)
 
 	resp.Write(orderNumberHex)
 
