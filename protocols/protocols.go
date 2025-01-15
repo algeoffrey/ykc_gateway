@@ -882,17 +882,20 @@ func parseSegments(data []byte, count int) []uint16 {
 	return segments
 }
 
-func PackSubmitFinalStatusResponse(hexPort []byte, hexOrderNumber []byte) []byte {
+func PackSubmitFinalStatusResponse(IMEI []byte, hexPort []byte, hexOrderNumber []byte) []byte {
 
 	resp := &bytes.Buffer{}
 	resp.Write([]byte{0x5A, 0xA5})
+
+	resp.Write([]byte{0x07, 0x00})
 	resp.Write([]byte{0x85, 0x00})
+	// resp.Write(IMEI)
 	resp.Write(hexPort)
 	// resp.Write([]byte{
 	// 	0x00, 0x12, 0x34, 0x56, // order number (00123456)
 	// })
 	resp.Write(hexOrderNumber)
-
+	resp.Write([]byte{0xEA})
 	// Print accumulated buffer in hex format
 	log.Debugf("Submit Final Status Response buffer (hex): %X", resp.Bytes())
 
@@ -902,7 +905,6 @@ func PackSubmitFinalStatusResponse(hexPort []byte, hexOrderNumber []byte) []byte
 func ParseStartChargingRequest(IMEI string, hexPort []byte, orderNumberHex []byte) []byte {
 	var resp bytes.Buffer
 
-	// imei := utils.ASCIIToHex(IMEI)
 	// Frame Header (5AA5)
 	resp.Write([]byte{0x5A, 0xA5})
 

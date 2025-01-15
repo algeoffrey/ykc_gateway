@@ -385,6 +385,11 @@ func RemoteStop(buf []byte, header *dtos.Header, conn net.Conn) {
 
 func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) []byte {
 	msg := protocols.PackSubmitFinalStatusMessage(buf, header)
+
+	conn, imei, err := utils.GetClientByIPAddress(conn.RemoteAddr().String())
+	if err != nil {
+		return nil
+	}
 	if msg == nil {
 		log.Error("Failed to parse Submit Final Status message")
 		return nil
@@ -402,9 +407,11 @@ func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn 
 		"segmentPrices":    msg.SegmentPrices,
 	}).Debug("[85] Submit Final Status message")
 
+	IMEI := utils.ASCIIToHex(imei)
+	// Port number is already 1-based in the protocol (1-N), no need to increment
 	hexPort := []byte{buf[6]}
 	hexOrderNumber := buf[7:11]
-	data := protocols.PackSubmitFinalStatusResponse(hexPort, hexOrderNumber)
+	data := protocols.PackSubmitFinalStatusResponse(IMEI, hexPort, hexOrderNumber)
 	return data
 
 }
