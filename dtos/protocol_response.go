@@ -210,17 +210,21 @@ type SubmitFinalStatusMessage struct {
 	SegmentPrices    []uint16 `json:"segmentPrices"`
 }
 
+type PortData struct {
+	PortID          byte   `json:"portID"`
+	CurrentTier     byte   `json:"currentTier"`
+	CurrentRate     uint16 `json:"currentRate"`
+	CurrentPower    uint16 `json:"currentPower"`
+	UsageTime       uint32 `json:"usageTime"`
+	UsedAmount      uint16 `json:"usedAmount"`
+	EnergyUsed      uint32 `json:"energyUsed"`
+	PortTemperature byte   `json:"portTemperature"`
+}
+
 type ChargingPortDataMessage struct {
-	Header          *Header `json:"header"`
-	PortCount       byte    `json:"portCount"`
-	Voltage         uint16  `json:"voltage"`
-	Temperature     byte    `json:"temperature"`
-	ActivePort      byte    `json:"activePort"`
-	CurrentTier     byte    `json:"currentTier"`
-	CurrentRate     uint16  `json:"currentRate"`
-	CurrentPower    uint16  `json:"currrentPower"`
-	UsageTime       uint32  `json:"usageTime"`
-	UsedAmount      uint16  `json:"usedAmount"`
-	EnergyUsed      uint32  `json:"energyUsed"`
-	PortTemperature byte    `json:"portTemperature"`
+	Header      *Header    `json:"header"`
+	PortCount   byte       `json:"portCount"`
+	Voltage     uint16     `json:"voltage"`
+	Temperature byte       `json:"temperature"`
+	Ports       []PortData `json:"ports"`
 }
