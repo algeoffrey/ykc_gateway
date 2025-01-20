@@ -6,7 +6,6 @@ import (
 	hex2 "encoding/hex"
 	"fmt"
 	"strconv"
-	"time"
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/utils"
 
@@ -1006,10 +1005,7 @@ func ParseChargingPortDataMessage(buf []byte, header *dtos.Header, deviceID stri
 			EnergyUsed:      energyUsed,
 			PortTemperature: portTemperature,
 		})
-		session, found := utils.GetChargingSession(deviceID, int(portID))
-		session.StartTime = session.StartTime + time.Duration(usageTime)*time.Second
-		if found {
-		}
+		utils.UpdateSessionExpectedStopTime(deviceID, int(portID))
 		// Store the current power reading for this port
 		utils.StorePortReport(deviceID, int(portID), map[string]interface{}{
 			"currentPower": currentPower,

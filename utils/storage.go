@@ -85,7 +85,7 @@ func UpdateSessionMaxWatt(deviceID string, port int, watt int) *ChargingSession 
 	return nil
 }
 
-func UpdateSessionExpectedStopTime(deviceID string, port int, watt int) *ChargingSession {
+func UpdateSessionExpectedStopTime(deviceID string, port int) *ChargingSession {
 	key := getSessionKey(deviceID, port)
 	if value, exists := chargingSessions.Load(key); exists {
 		session := value.(*ChargingSession)
