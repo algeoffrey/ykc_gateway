@@ -46,6 +46,7 @@ type StartChargingRequest struct {
 	DeviceID    string `json:"clientID"`
 	Port        int    `json:"port"`
 	OrderNumber string `json:"orderNumber"`
+	Value       int    `json:"value"`
 }
 
 type StopChargingRequest struct {

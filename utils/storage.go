@@ -57,10 +57,11 @@ type ChargingSession struct {
 	StopTime         *time.Time // Pointer to allow nil for active sessions
 	ExpectedStopTime *time.Time // Pointer to allow nil for active sessions
 	MaxWatt          int
+	Value            int
 }
 
 // StartChargingSession creates a new charging session for a device and port
-func StartChargingSession(deviceID string, port int) {
+func StartChargingSession(deviceID string, port int, value int) {
 	key := getSessionKey(deviceID, port)
 	session := ChargingSession{
 		DeviceID:  deviceID,
@@ -68,6 +69,7 @@ func StartChargingSession(deviceID string, port int) {
 		StartTime: time.Now(),
 		StopTime:  nil,
 		MaxWatt:   0, // Track maximum wattage during charging session
+		Value:     value,
 	}
 	chargingSessions.Store(key, &session)
 }

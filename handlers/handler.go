@@ -35,10 +35,14 @@ func StartChargingHandler(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "order number is required"})
 		return
 	}
+	if req.Value == 0 {
+		c.JSON(400, gin.H{"error": "value is required"})
+		return
+	}
 
 	err := services.StartCharging(req.DeviceID, req.Port, req.OrderNumber)
 
-	utils.StartChargingSession(req.DeviceID, req.Port)
+	utils.StartChargingSession(req.DeviceID, req.Port, req.Value)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
