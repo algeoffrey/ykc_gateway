@@ -89,6 +89,7 @@ func StartChargingSession(deviceID string, port int) {
 		DeviceID:  deviceID,
 		Port:      port,
 		StartTime: time.Now(),
+		StopTime:  nil,
 	}
 	chargingSessions.Store(key, &session)
 }
@@ -100,7 +101,8 @@ func StopChargingSession(deviceID string, port int) *ChargingSession {
 		session := value.(*ChargingSession)
 		now := time.Now()
 		session.StopTime = &now
-		chargingSessions.Delete(key) // Remove from active sessions
+		// Keep the session in storage rather than deleting it
+		chargingSessions.Store(key, session)
 		return session
 	}
 	return nil
