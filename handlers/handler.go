@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"strconv"
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/services"
 	"ykc-proxy-server/utils"
@@ -284,22 +285,22 @@ func RemoteStopHandler(buf []byte, header *dtos.Header, conn net.Conn) {
 
 func ChargingPortDataHandler(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) {
 	// Parse the CMD088 message
-	msg := services.ChargingPortData(opt, buf, header, conn)
+	services.ChargingPortData(opt, buf, header, conn)
 
 	// Forward the Charging Port Data message to an external system (optional)
-	if msg != nil {
-		if opt.MessageForwarder != nil {
-			jsonMsg, err := json.Marshal(msg)
-			if err != nil {
-				log.Errorf("Failed to marshal Charging Port Data message: %v", err)
-				return
-			}
-			err = opt.MessageForwarder.Publish("88", jsonMsg)
-			if err != nil {
-				log.Errorf("Failed to publish Charging Port Data message: %v", err)
-			}
-		}
-	}
+	// if msg != nil {
+	// 	if opt.MessageForwarder != nil {
+	// 		jsonMsg, err := json.Marshal(msg)
+	// 		if err != nil {
+	// 			log.Errorf("Failed to marshal Charging Port Data message: %v", err)
+	// 			return
+	// 		}
+	// 		err = opt.MessageForwarder.Publish("88", jsonMsg)
+	// 		if err != nil {
+	// 			log.Errorf("Failed to publish Charging Port Data message: %v", err)
+	// 		}
+	// 	}
+	// }
 
 }
 
@@ -317,4 +318,32 @@ func GetHeartbeatHandler(c *gin.Context) {
 	}
 
 	c.JSON(200, heartbeat)
+}
+
+func GetLatestPortReportHandler(c *gin.Context) {
+	deviceID := c.Query("deviceId")
+	if deviceID == "" {
+		c.JSON(400, gin.H{"error": "deviceId is required"})
+		return
+	}
+
+	port := c.Query("port")
+	if port == "" {
+		c.JSON(400, gin.H{"error": "port is required"})
+		return
+	}
+
+	portNum, err := strconv.Atoi(port)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid port number"})
+		return
+	}
+
+	portReport, found := utils.GetPortReport(deviceID, portNum)
+	if !found {
+		c.JSON(404, gin.H{"error": "no port report found for device"})
+		return
+	}
+
+	c.JSON(200, portReport)
 }

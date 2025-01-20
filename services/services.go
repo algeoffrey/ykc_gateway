@@ -425,7 +425,7 @@ func ChargingPortData(opt *dtos.Options, buf []byte, header *dtos.Header, conn n
 		return nil
 	}
 
-	msg := protocols.PackChargingPortDataMessage(buf, header, deviceID)
+	msg := protocols.ParseChargingPortDataMessage(buf, header, deviceID)
 	if msg == nil {
 		log.Error("Failed to parse Charging Port Data message")
 		return nil

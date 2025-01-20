@@ -955,7 +955,7 @@ func ParseStopChargingRequest(orderNumberHex []byte, hexPort []byte) []byte {
 	return resp.Bytes()
 }
 
-func PackChargingPortDataMessage(buf []byte, header *dtos.Header, deviceID string) *dtos.ChargingPortDataMessage {
+func ParseChargingPortDataMessage(buf []byte, header *dtos.Header, deviceID string) *dtos.ChargingPortDataMessage {
 	if len(buf) < 6 {
 		log.Error("Message too short to process CMD088")
 		return nil
