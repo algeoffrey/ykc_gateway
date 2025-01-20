@@ -47,6 +47,28 @@ func GetClientByIPAddress(ipAddress string) (net.Conn, string, error) {
 	return nil, "", errors.New("client does not exist")
 }
 
+func GetClientByIMEI(imei string) (net.Conn, string, error) {
+	var foundConn net.Conn
+	var found bool
+	var ipAddress string
+
+	clients.Range(func(key, value interface{}) bool {
+		clientInfo := key.(dtos.ClientInfo) // Cast the key to ClientInfo
+		if clientInfo.IMEI == imei {
+			foundConn = value.(net.Conn) // Cast the value to net.Conn
+			ipAddress = clientInfo.IPAddress
+			found = true
+			return false // Stop iteration as we found the client
+		}
+		return true // Continue iteration
+	})
+
+	if found {
+		return foundConn, ipAddress, nil
+	}
+	return nil, "", errors.New("client does not exist")
+}
+
 func SendMessage(conn net.Conn, message []byte) error {
 	// Convert message to bytes or proper format
 	PrintHex(message)

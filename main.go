@@ -90,7 +90,6 @@ func enableTcpServer(opt *dtos.Options) {
 }
 
 func enableHttpServer(opt *dtos.Options) {
-	fmt.Println("Http ok")
 	r := gin.Default()
 	r.POST("/start", handlers.StartChargingHandler)
 	r.POST("/stop", handlers.StopChargingHandler)

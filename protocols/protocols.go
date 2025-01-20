@@ -902,7 +902,7 @@ func PackSubmitFinalStatusResponse(IMEI []byte, hexPort []byte, hexOrderNumber [
 	return resp.Bytes()
 }
 
-func ParseStartChargingRequest(IMEI string, hexPort []byte, orderNumberHex []byte) []byte {
+func ParseStartChargingRequest(hexPort []byte, orderNumberHex []byte) []byte {
 	var resp bytes.Buffer
 
 	// Frame Header (5AA5)
@@ -913,9 +913,6 @@ func ParseStartChargingRequest(IMEI string, hexPort []byte, orderNumberHex []byt
 
 	// Command (83)
 	resp.Write([]byte{RemoteStart, 0x00})
-
-	//IMEI
-	// resp.Write(imei)
 
 	//PORT
 	resp.Write(hexPort)
@@ -933,7 +930,7 @@ func ParseStartChargingRequest(IMEI string, hexPort []byte, orderNumberHex []byt
 	return resp.Bytes()
 }
 
-func ParseStopChargingRequest(IMEI string, orderNumberHex []byte, hexPort []byte) []byte {
+func ParseStopChargingRequest(orderNumberHex []byte, hexPort []byte) []byte {
 	var resp bytes.Buffer
 
 	// imei := utils.ASCIIToHex(IMEI)
@@ -945,9 +942,6 @@ func ParseStopChargingRequest(IMEI string, orderNumberHex []byte, hexPort []byte
 
 	// Command (84)
 	resp.Write([]byte{RemoteStop, 0x00})
-
-	//IMEI
-	// resp.Write(imei)
 
 	//PORT
 	resp.Write(hexPort)

@@ -6,15 +6,16 @@ import (
 	"ykc-proxy-server/utils"
 )
 
-func StartCharging(IPAddress string, port int, orderNumber string) error {
-	conn, imei, err := utils.GetClientByIPAddress(IPAddress)
+func StartCharging(IMEI string, port int, orderNumber string) error {
+
+	conn, _, err := utils.GetClientByIMEI(IMEI)
 	if err != nil {
 		return err
 	}
 	hexPort := []byte{byte(port)} // Convert port number directly to byte (1->0x01, 2->0x02, etc)
 	orderNumberHex, _ := hex.DecodeString(orderNumber)
 	utils.PrintHex(orderNumberHex)
-	packet := protocols.ParseStartChargingRequest(imei, hexPort, orderNumberHex)
+	packet := protocols.ParseStartChargingRequest(hexPort, orderNumberHex)
 	err = utils.SendMessage(conn, packet)
 	if err != nil {
 		return err
@@ -22,15 +23,15 @@ func StartCharging(IPAddress string, port int, orderNumber string) error {
 	return nil
 }
 
-func StopCharging(IPAddress string, port int, orderNumber string) error {
-	conn, imei, err := utils.GetClientByIPAddress(IPAddress)
+func StopCharging(IMEI string, port int, orderNumber string) error {
+	conn, _, err := utils.GetClientByIMEI(IMEI)
 	if err != nil {
 		return err
 	}
 
 	hexPort := []byte{byte(port)} // Convert port number directly to byte (1->0x01, 2->0x02, etc)
 	orderNumberHex, _ := hex.DecodeString(orderNumber)
-	packet := protocols.ParseStopChargingRequest(imei, orderNumberHex, hexPort)
+	packet := protocols.ParseStopChargingRequest(orderNumberHex, hexPort)
 	err = utils.SendMessage(conn, packet)
 	if err != nil {
 		return err
