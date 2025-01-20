@@ -80,6 +80,7 @@ type ChargingSession struct {
 	Port      int
 	StartTime time.Time
 	StopTime  *time.Time // Pointer to allow nil for active sessions
+	MaxWatt   int
 }
 
 // StartChargingSession creates a new charging session for a device and port
@@ -90,8 +91,21 @@ func StartChargingSession(deviceID string, port int) {
 		Port:      port,
 		StartTime: time.Now(),
 		StopTime:  nil,
+		MaxWatt:   0, // Track maximum wattage during charging session
 	}
 	chargingSessions.Store(key, &session)
+}
+
+func UpdateSessionMaxWatt(deviceID string, port int, watt int) *ChargingSession {
+	key := getSessionKey(deviceID, port)
+	if value, exists := chargingSessions.Load(key); exists {
+		session := value.(*ChargingSession)
+		session.MaxWatt = watt
+		// Keep the session in storage rather than deleting it
+		chargingSessions.Store(key, session)
+		return session
+	}
+	return nil
 }
 
 // StopChargingSession ends a charging session and records the stop time

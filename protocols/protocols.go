@@ -1011,6 +1011,8 @@ func ParseChargingPortDataMessage(buf []byte, header *dtos.Header, deviceID stri
 			"currentPower": currentPower,
 		})
 
+		utils.UpdateSessionMaxWatt(deviceID, int(portID), int(currentPower))
+
 		offset += 17 // Adjust offset to 17 bytes per port
 	}
 
