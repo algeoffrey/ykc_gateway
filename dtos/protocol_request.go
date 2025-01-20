@@ -43,13 +43,13 @@ type SetBillingModelRequestMessage struct {
 }
 
 type StartChargingRequest struct {
-	ClientID    string `json:"clientID"`
+	DeviceID    string `json:"clientID"`
 	Port        int    `json:"port"`
 	OrderNumber string `json:"orderNumber"`
 }
 
 type StopChargingRequest struct {
-	ClientID    string `json:"clientID"`
+	DeviceID    string `json:"clientID"`
 	Port        int    `json:"port"`
 	OrderNumber string `json:"orderNumber"`
 }

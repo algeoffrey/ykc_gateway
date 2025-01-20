@@ -21,7 +21,7 @@ func StartChargingHandler(c *gin.Context) {
 		return
 	}
 
-	if req.ClientID == "" {
+	if req.DeviceID == "" {
 		c.JSON(400, gin.H{"error": "client ID is required"})
 		return
 	}
@@ -36,7 +36,9 @@ func StartChargingHandler(c *gin.Context) {
 		return
 	}
 
-	err := services.StartCharging(req.ClientID, req.Port, req.OrderNumber)
+	err := services.StartCharging(req.DeviceID, req.Port, req.OrderNumber)
+
+	utils.StartChargingSession(req.DeviceID, req.Port)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -52,7 +54,7 @@ func StopChargingHandler(c *gin.Context) {
 		return
 	}
 
-	if req.ClientID == "" {
+	if req.DeviceID == "" {
 		c.JSON(400, gin.H{"error": "client ID is required"})
 		return
 	}
@@ -67,11 +69,17 @@ func StopChargingHandler(c *gin.Context) {
 		return
 	}
 
-	err := services.StopCharging(req.ClientID, req.Port, req.OrderNumber)
+	err := services.StopCharging(req.DeviceID, req.Port, req.OrderNumber)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
+
+	session := utils.StopChargingSession(req.DeviceID, req.Port)
+	if session == nil {
+		log.Warn("No active charging session found to stop")
+	}
+
 	c.JSON(200, gin.H{"status": "message sent"})
 }
 
@@ -346,4 +354,30 @@ func GetLatestPortReportHandler(c *gin.Context) {
 	}
 
 	c.JSON(200, portReport)
+}
+
+func GetChargingSessionHandler(c *gin.Context) {
+	deviceID := c.Query("deviceId")
+	if deviceID == "" {
+		c.JSON(400, gin.H{"error": "deviceId is required"})
+		return
+	}
+
+	port := c.Query("port")
+	if port == "" {
+		c.JSON(400, gin.H{"error": "port is required"})
+		return
+	}
+	intPort, err := strconv.Atoi(port)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid port number"})
+		return
+	}
+	session, found := utils.GetChargingSession(deviceID, intPort)
+	if !found {
+		c.JSON(404, gin.H{"error": "no charging session found for device"})
+		return
+	}
+
+	c.JSON(200, session)
 }
