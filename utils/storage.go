@@ -89,7 +89,7 @@ func UpdateSessionExpectedStopTime(deviceID string, port int) *ChargingSession {
 	key := getSessionKey(deviceID, port)
 	if value, exists := chargingSessions.Load(key); exists {
 		session := value.(*ChargingSession)
-		expectedStop := time.Now().Add(1000 / (60 * 60) * 60 * time.Second)
+		expectedStop := time.Now().Add((1000 / (60 * 60)) * 60 * 60 * time.Second)
 		session.ExpectedStopTime = &expectedStop
 		chargingSessions.Store(key, session)
 		return session
