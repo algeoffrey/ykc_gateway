@@ -100,7 +100,9 @@ func UpdateSessionMaxWatt(deviceID string, port int, watt int) *ChargingSession 
 	key := getSessionKey(deviceID, port)
 	if value, exists := chargingSessions.Load(key); exists {
 		session := value.(*ChargingSession)
-		session.MaxWatt = watt
+		if session.MaxWatt < int(watt) {
+			session.MaxWatt = watt
+		}
 		// Keep the session in storage rather than deleting it
 		chargingSessions.Store(key, session)
 		return session
