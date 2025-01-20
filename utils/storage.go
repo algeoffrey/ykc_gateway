@@ -48,39 +48,15 @@ func getPortReportKey(deviceID string, portNumber int) string {
 	return deviceID + "_" + string(rune(portNumber))
 }
 
-var reports85 sync.Map
-
-// Store85Report stores the 0x85 report for a device ID and port number
-func Store85Report(deviceID string, portNumber int, report interface{}) {
-	key := get85ReportKey(deviceID, portNumber)
-	reports85.Store(key, report)
-}
-
-// Get85Report retrieves the stored 0x85 report for a device ID and port number
-func Get85Report(deviceID string, portNumber int) (interface{}, bool) {
-	key := get85ReportKey(deviceID, portNumber)
-	return reports85.Load(key)
-}
-
-// Clear85Report removes the stored 0x85 report for a device ID and port number
-func Clear85Report(deviceID string, portNumber int) {
-	key := get85ReportKey(deviceID, portNumber)
-	reports85.Delete(key)
-}
-
-// Helper function to generate storage key for 0x85 reports
-func get85ReportKey(deviceID string, portNumber int) string {
-	return deviceID + "_85_" + string(rune(portNumber))
-}
-
 var chargingSessions sync.Map
 
 type ChargingSession struct {
-	DeviceID  string
-	Port      int
-	StartTime time.Time
-	StopTime  *time.Time // Pointer to allow nil for active sessions
-	MaxWatt   int
+	DeviceID         string
+	Port             int
+	StartTime        time.Time
+	StopTime         *time.Time // Pointer to allow nil for active sessions
+	ExpectedStopTime *time.Time // Pointer to allow nil for active sessions
+	MaxWatt          int
 }
 
 // StartChargingSession creates a new charging session for a device and port
@@ -103,7 +79,18 @@ func UpdateSessionMaxWatt(deviceID string, port int, watt int) *ChargingSession 
 		if session.MaxWatt < int(watt) {
 			session.MaxWatt = watt
 		}
-		// Keep the session in storage rather than deleting it
+		chargingSessions.Store(key, session)
+		return session
+	}
+	return nil
+}
+
+func UpdateSessionExpectedStopTime(deviceID string, port int, watt int) *ChargingSession {
+	key := getSessionKey(deviceID, port)
+	if value, exists := chargingSessions.Load(key); exists {
+		session := value.(*ChargingSession)
+		expectedStop := time.Now().Add(1000 / (60 * 60) * 60 * time.Second)
+		session.ExpectedStopTime = &expectedStop
 		chargingSessions.Store(key, session)
 		return session
 	}
