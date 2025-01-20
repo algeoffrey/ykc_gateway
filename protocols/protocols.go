@@ -956,59 +956,70 @@ func ParseStopChargingRequest(orderNumberHex []byte, hexPort []byte) []byte {
 }
 
 func PackChargingPortDataMessage(buf []byte, header *dtos.Header) *dtos.ChargingPortDataMessage {
-	if len(buf) < 37 {
-		log.Error("Message too short to process CMD088")
-		return nil
-	}
+    if len(buf) < 6 {
+        log.Error("Message too short to process CMD088")
+        return nil
+    }
 
-	payload := buf[6:]
+    payload := buf[6:]
+    log.Debugf("Payload: %x", payload)
 
-	portCount := payload[0]
-	log.Debugf("Parsed Port Count: %d", portCount)
+    portCount := payload[0]
+    log.Debugf("Parsed Port Count: %d", portCount)
 
-	voltage := binary.LittleEndian.Uint16(payload[1:3]) // Voltage in 0.1V
-	log.Debugf("Parsed Voltage: %.1fV", float64(voltage)*0.1)
+    voltage := binary.LittleEndian.Uint16(payload[1:3]) // Voltage in 0.1V
+    log.Debugf("Parsed Voltage: %.1fV", float64(voltage)*0.1)
 
-	temperature := payload[3]
-	log.Debugf("Parsed Temperature: %d°C", temperature)
+    temperature := payload[3]
+    log.Debugf("Parsed Temperature: %d°C", temperature)
 
-	activePort := payload[4]
-	log.Debugf("Parsed Active Port: %d", activePort)
+    ports := []dtos.PortData{}
+    offset := 4
+    for i := 0; i < int(portCount); i++ {
+        if len(payload[offset:]) < 17 {
+            log.Errorf("Insufficient data for port %d", i+1)
+            break
+        }
 
-	currentTier := payload[5]
-	log.Debugf("Parsed Current Tier: %d", currentTier)
+        log.Debugf("Parsing data for port %d starting at offset %d", i+1, offset)
 
-	currentRate := binary.LittleEndian.Uint16(payload[6:8]) // Current rate in 0.01 Yuan
-	log.Debugf("Parsed Current Rate: %.2f Yuan", float64(currentRate)*0.01)
+        portID := payload[offset]
+        currentTier := payload[offset+1]
+        currentRate := binary.LittleEndian.Uint16(payload[offset+2 : offset+4]) // Current rate in 0.01 Yuan
+        currentPower := binary.LittleEndian.Uint16(payload[offset+4 : offset+6]) // Power in Watts
+        usageTime := binary.LittleEndian.Uint32(payload[offset+6 : offset+10]) // Time in seconds
+        usedAmount := binary.LittleEndian.Uint16(payload[offset+10 : offset+12]) // Used amount in 0.01 Yuan
+        energyUsed := binary.LittleEndian.Uint32(payload[offset+12 : offset+16]) // Energy used in 0.01 kWh
+        portTemperature := payload[offset+16]
 
-	currentPower := binary.LittleEndian.Uint16(payload[8:10]) // Power in Watts
-	log.Debugf("Parsed Current Power: %dW", currentPower)
+        log.Debugf("Parsed Port Data - ID: %d, Tier: %d, Rate: %.2f Yuan, Power: %dW, Time: %d sec, Amount: %.2f Yuan, Energy: %.2f kWh, Temp: %d°C",
+            portID, currentTier, float64(currentRate)*0.01, currentPower, usageTime, float64(usedAmount)*0.01, float64(energyUsed)*0.01, portTemperature)
 
-	usageTime := binary.LittleEndian.Uint32(payload[10:14]) // Time in seconds
-	log.Debugf("Parsed Usage Time: %d seconds", usageTime)
+        ports = append(ports, dtos.PortData{
+            PortID:          portID,
+            CurrentTier:     currentTier,
+            CurrentRate:     currentRate,
+            CurrentPower:    currentPower,
+            UsageTime:       usageTime,
+            UsedAmount:      usedAmount,
+            EnergyUsed:      energyUsed,
+            PortTemperature: portTemperature,
+        })
 
-	usedAmount := binary.LittleEndian.Uint16(payload[14:16]) // Used amount in 0.01 Yuan
-	log.Debugf("Parsed Used Amount: %.2f Yuan", float64(usedAmount)*0.01)
+        offset += 17 // Adjust offset to 17 bytes per port
+    }
 
-	energyUsed := binary.LittleEndian.Uint32(payload[16:20]) // Energy used in 0.01 kWh
-	log.Debugf("Parsed Energy Used: %.2fkWh", float64(energyUsed)*0.01)
+    log.Debugf("All ports parsed successfully. Total ports: %d", len(ports))
 
-	portTemperature := payload[20]
-	log.Debugf("Parsed Port Temperature: %d°C", portTemperature)
-
-	// Return the parsed message
-	return &dtos.ChargingPortDataMessage{
-		Header:          header,
-		PortCount:       portCount,
-		Voltage:         voltage,
-		Temperature:     temperature,
-		ActivePort:      activePort,
-		CurrentTier:     currentTier,
-		CurrentRate:     currentRate,
-		CurrentPower:    currentPower,
-		UsageTime:       usageTime,
-		UsedAmount:      usedAmount,
-		EnergyUsed:      energyUsed,
-		PortTemperature: portTemperature,
-	}
+    return &dtos.ChargingPortDataMessage{
+        Header:      header,
+        PortCount:   portCount,
+        Voltage:     voltage,
+        Temperature: temperature,
+        Ports:       ports,
+    }
 }
+
+
+
+
