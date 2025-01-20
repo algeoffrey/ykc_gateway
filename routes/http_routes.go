@@ -11,6 +11,7 @@ func SetupHttpRoutes(r *gin.Engine) {
 	r.POST("/stop", handlers.StopChargingHandler)
 	r.GET("/heartbeat", handlers.GetHeartbeatHandler)
 	r.GET("/port-report", handlers.GetLatestPortReportHandler)
+	r.GET("/charging-session", handlers.GetChargingSessionHandler)
 	r.POST("/proxy/02", handlers.VerificationResponseRouter)
 	r.POST("/proxy/06", handlers.BillingModelVerificationResponseHandler)
 	r.POST("/proxy/0a", handlers.BillingModelResponseMessageHandler)
