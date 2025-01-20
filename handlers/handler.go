@@ -302,3 +302,19 @@ func ChargingPortDataHandler(opt *dtos.Options, buf []byte, header *dtos.Header,
 	}
 
 }
+
+func GetHeartbeatHandler(c *gin.Context) {
+	deviceID := c.Query("deviceId")
+	if deviceID == "" {
+		c.JSON(400, gin.H{"error": "deviceId is required"})
+		return
+	}
+
+	heartbeat, found := utils.GetHeartbeat(deviceID)
+	if !found {
+		c.JSON(404, gin.H{"error": "no heartbeat found for device"})
+		return
+	}
+
+	c.JSON(200, heartbeat)
+}

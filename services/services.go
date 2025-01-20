@@ -61,12 +61,11 @@ func SendHeartbeatResponse(conn net.Conn, header *dtos.Header) error {
 
 func Hearthbeat(buf []byte, header *dtos.Header, conn net.Conn) *dtos.HeartbeatMessage {
 	IPAddress := conn.RemoteAddr().String()
-	conn, imei, err := utils.GetClientByIPAddress(IPAddress)
+	_, deviceID, err := utils.GetClientByIPAddress(IPAddress)
 	if err != nil {
 		return nil
 	}
-	fmt.Println(imei)
-	fmt.Println(IPAddress)
+	fmt.Println(deviceID)
 	msg := protocols.PackHeartbeatMessage(buf, header)
 	if msg == nil {
 		log.Error("Failed to parse Heartbeat message")
@@ -80,6 +79,9 @@ func Hearthbeat(buf []byte, header *dtos.Header, conn net.Conn) *dtos.HeartbeatM
 		"totalPortCount": msg.TotalPortCount,
 		"portStatus":     msg.PortStatus,
 	}).Debug("[82] Heartbeat message")
+
+	utils.StoreHeartbeat(deviceID, msg)
+
 	return msg
 }
 
@@ -317,7 +319,7 @@ func ChargingFinishedMessageRouter(opt *dtos.Options, hex []string, header *dtos
 func DeviceLogin(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) (*dtos.DeviceLoginMessage, []byte) {
 	// Unpack Device Login Message
 	msg := protocols.PackDeviceLoginMessage(buf, header)
-	utils.StoreClient(dtos.ClientInfo{IPAddress: conn.RemoteAddr().String(), IMEI: msg.IMEI}, conn)
+	utils.StoreClient(dtos.ClientInfo{IPAddress: conn.RemoteAddr().String(), DeviceID: msg.IMEI}, conn)
 	if msg == nil {
 		log.Error("Failed to parse Device Login message due to checksum mismatch or invalid buffer")
 		return nil, nil
@@ -417,23 +419,28 @@ func SubmitFinalStatus(opt *dtos.Options, buf []byte, header *dtos.Header, conn 
 }
 
 func ChargingPortData(opt *dtos.Options, buf []byte, header *dtos.Header, conn net.Conn) *dtos.ChargingPortDataMessage {
-    msg := protocols.PackChargingPortDataMessage(buf, header)
-    if msg == nil {
-        log.Error("Failed to parse Charging Port Data message")
-        return nil
-    }
+	_, deviceID, err := utils.GetClientByIPAddress(conn.RemoteAddr().String())
+	if err != nil {
+		log.Error("Failed to get device ID:", err)
+		return nil
+	}
 
-    log.WithFields(log.Fields{
-        "header":          msg.Header,
-        "portCount":       msg.PortCount,
-        "voltage":         msg.Voltage,
-        "temperature":     msg.Temperature,
-        "ports":           msg.Ports,
-    }).Debug("[88] Charging Port Data message parsed successfully")
+	msg := protocols.PackChargingPortDataMessage(buf, header, deviceID)
+	if msg == nil {
+		log.Error("Failed to parse Charging Port Data message")
+		return nil
+	}
 
-    return msg
+	log.WithFields(log.Fields{
+		"header":      msg.Header,
+		"portCount":   msg.PortCount,
+		"voltage":     msg.Voltage,
+		"temperature": msg.Temperature,
+		"ports":       msg.Ports,
+	}).Debug("[88] Charging Port Data message parsed successfully")
+
+	return msg
 }
-
 
 func SendRemoteShutdownRequest(req *dtos.RemoteShutdownRequestMessage) error {
 	c, _, err := utils.GetClientByIPAddress(req.Id)

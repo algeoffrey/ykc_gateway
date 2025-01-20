@@ -11,7 +11,6 @@ import (
 	"time"
 	"ykc-proxy-server/dtos"
 	"ykc-proxy-server/forwarder"
-	"ykc-proxy-server/handlers"
 	"ykc-proxy-server/routes"
 
 	"github.com/gin-gonic/gin"
@@ -91,16 +90,8 @@ func enableTcpServer(opt *dtos.Options) {
 
 func enableHttpServer(opt *dtos.Options) {
 	r := gin.Default()
-	r.POST("/start", handlers.StartChargingHandler)
-	r.POST("/stop", handlers.StopChargingHandler)
-	r.POST("/proxy/02", handlers.VerificationResponseRouter)
-	r.POST("/proxy/06", handlers.BillingModelVerificationResponseHandler)
-	r.POST("/proxy/0a", handlers.BillingModelResponseMessageHandler)
-	r.POST("/proxy/34", handlers.RemoteBootstrapRequestHandler)
-	r.POST("/proxy/36", handlers.RemoteShutdownRequestHandler)
-	r.POST("/proxy/40", handlers.TransactionRecordConfirmedHandler)
-	r.POST("/proxy/58", handlers.SetBillingModelRequestHandler)
-	r.POST("/proxy/92", handlers.RemoteRebootRequestMessageHandler)
+
+	routes.SetupHttpRoutes(r)
 	host := opt.Host
 
 	port := strconv.Itoa(opt.HttpPort)

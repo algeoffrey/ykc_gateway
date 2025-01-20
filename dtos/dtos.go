@@ -8,5 +8,5 @@ type Header struct {
 }
 type ClientInfo struct {
 	IPAddress string
-	IMEI      string
+	DeviceID  string
 }

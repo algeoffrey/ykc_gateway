@@ -12,6 +12,18 @@ import (
 var clients sync.Map
 
 func StoreClient(client dtos.ClientInfo, conn net.Conn) {
+	// Check for existing client with same deviceID and remove it
+	clients.Range(func(key, value interface{}) bool {
+		clientInfo := key.(dtos.ClientInfo)
+		if clientInfo.DeviceID == client.DeviceID {
+			clients.Delete(key)
+			log.Debugf("Removed existing client with deviceID: %s", client.DeviceID)
+			return false
+		}
+		return true
+	})
+
+	// Store new client
 	clients.Store(client, conn)
 }
 
@@ -34,7 +46,7 @@ func GetClientByIPAddress(ipAddress string) (net.Conn, string, error) {
 		clientInfo := key.(dtos.ClientInfo) // Cast the key to ClientInfo
 		if clientInfo.IPAddress == ipAddress {
 			foundConn = value.(net.Conn) // Cast the value to net.Conn
-			imei = clientInfo.IMEI
+			imei = clientInfo.DeviceID
 			found = true
 			return false // Stop iteration as we found the client
 		}
@@ -47,14 +59,14 @@ func GetClientByIPAddress(ipAddress string) (net.Conn, string, error) {
 	return nil, "", errors.New("client does not exist")
 }
 
-func GetClientByIMEI(imei string) (net.Conn, string, error) {
+func GetClientByDeviceID(deviceID string) (net.Conn, string, error) {
 	var foundConn net.Conn
 	var found bool
 	var ipAddress string
 
 	clients.Range(func(key, value interface{}) bool {
 		clientInfo := key.(dtos.ClientInfo) // Cast the key to ClientInfo
-		if clientInfo.IMEI == imei {
+		if clientInfo.DeviceID == deviceID {
 			foundConn = value.(net.Conn) // Cast the value to net.Conn
 			ipAddress = clientInfo.IPAddress
 			found = true

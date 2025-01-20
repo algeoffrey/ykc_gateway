@@ -6,9 +6,9 @@ import (
 	"ykc-proxy-server/utils"
 )
 
-func StartCharging(IMEI string, port int, orderNumber string) error {
+func StartCharging(deviceID string, port int, orderNumber string) error {
 
-	conn, _, err := utils.GetClientByIMEI(IMEI)
+	conn, _, err := utils.GetClientByDeviceID(deviceID)
 	if err != nil {
 		return err
 	}
@@ -23,8 +23,8 @@ func StartCharging(IMEI string, port int, orderNumber string) error {
 	return nil
 }
 
-func StopCharging(IMEI string, port int, orderNumber string) error {
-	conn, _, err := utils.GetClientByIMEI(IMEI)
+func StopCharging(deviceID string, port int, orderNumber string) error {
+	conn, _, err := utils.GetClientByDeviceID(deviceID)
 	if err != nil {
 		return err
 	}

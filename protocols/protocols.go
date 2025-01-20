@@ -955,71 +955,72 @@ func ParseStopChargingRequest(orderNumberHex []byte, hexPort []byte) []byte {
 	return resp.Bytes()
 }
 
-func PackChargingPortDataMessage(buf []byte, header *dtos.Header) *dtos.ChargingPortDataMessage {
-    if len(buf) < 6 {
-        log.Error("Message too short to process CMD088")
-        return nil
-    }
+func PackChargingPortDataMessage(buf []byte, header *dtos.Header, deviceID string) *dtos.ChargingPortDataMessage {
+	if len(buf) < 6 {
+		log.Error("Message too short to process CMD088")
+		return nil
+	}
 
-    payload := buf[6:]
-    log.Debugf("Payload: %x", payload)
+	payload := buf[6:]
+	log.Debugf("Payload: %x", payload)
 
-    portCount := payload[0]
-    log.Debugf("Parsed Port Count: %d", portCount)
+	portCount := payload[0]
+	log.Debugf("Parsed Port Count: %d", portCount)
 
-    voltage := binary.LittleEndian.Uint16(payload[1:3]) // Voltage in 0.1V
-    log.Debugf("Parsed Voltage: %.1fV", float64(voltage)*0.1)
+	voltage := binary.LittleEndian.Uint16(payload[1:3]) // Voltage in 0.1V
+	log.Debugf("Parsed Voltage: %.1fV", float64(voltage)*0.1)
 
-    temperature := payload[3]
-    log.Debugf("Parsed Temperature: %d°C", temperature)
+	temperature := payload[3]
+	log.Debugf("Parsed Temperature: %d°C", temperature)
 
-    ports := []dtos.PortData{}
-    offset := 4
-    for i := 0; i < int(portCount); i++ {
-        if len(payload[offset:]) < 17 {
-            log.Errorf("Insufficient data for port %d", i+1)
-            break
-        }
+	ports := []dtos.PortData{}
+	offset := 4
+	for i := 0; i < int(portCount); i++ {
+		if len(payload[offset:]) < 17 {
+			log.Errorf("Insufficient data for port %d", i+1)
+			break
+		}
 
-        log.Debugf("Parsing data for port %d starting at offset %d", i+1, offset)
+		log.Debugf("Parsing data for port %d starting at offset %d", i+1, offset)
 
-        portID := payload[offset]
-        currentTier := payload[offset+1]
-        currentRate := binary.LittleEndian.Uint16(payload[offset+2 : offset+4]) // Current rate in 0.01 Yuan
-        currentPower := binary.LittleEndian.Uint16(payload[offset+4 : offset+6]) // Power in Watts
-        usageTime := binary.LittleEndian.Uint32(payload[offset+6 : offset+10]) // Time in seconds
-        usedAmount := binary.LittleEndian.Uint16(payload[offset+10 : offset+12]) // Used amount in 0.01 Yuan
-        energyUsed := binary.LittleEndian.Uint32(payload[offset+12 : offset+16]) // Energy used in 0.01 kWh
-        portTemperature := payload[offset+16]
+		portID := payload[offset]
+		currentTier := payload[offset+1]
+		currentRate := binary.LittleEndian.Uint16(payload[offset+2 : offset+4])  // Current rate in 0.01 Yuan
+		currentPower := binary.LittleEndian.Uint16(payload[offset+4 : offset+6]) // Power in Watts
+		usageTime := binary.LittleEndian.Uint32(payload[offset+6 : offset+10])   // Time in seconds
+		usedAmount := binary.LittleEndian.Uint16(payload[offset+10 : offset+12]) // Used amount in 0.01 Yuan
+		energyUsed := binary.LittleEndian.Uint32(payload[offset+12 : offset+16]) // Energy used in 0.01 kWh
+		portTemperature := payload[offset+16]
 
-        log.Debugf("Parsed Port Data - ID: %d, Tier: %d, Rate: %.2f Yuan, Power: %dW, Time: %d sec, Amount: %.2f Yuan, Energy: %.2f kWh, Temp: %d°C",
-            portID, currentTier, float64(currentRate)*0.01, currentPower, usageTime, float64(usedAmount)*0.01, float64(energyUsed)*0.01, portTemperature)
+		log.Debugf("Parsed Port Data - ID: %d, Tier: %d, Rate: %.2f Yuan, Power: %dW, Time: %d sec, Amount: %.2f Yuan, Energy: %.2f kWh, Temp: %d°C",
+			portID, currentTier, float64(currentRate)*0.01, currentPower, usageTime, float64(usedAmount)*0.01, float64(energyUsed)*0.01, portTemperature)
 
-        ports = append(ports, dtos.PortData{
-            PortID:          portID,
-            CurrentTier:     currentTier,
-            CurrentRate:     currentRate,
-            CurrentPower:    currentPower,
-            UsageTime:       usageTime,
-            UsedAmount:      usedAmount,
-            EnergyUsed:      energyUsed,
-            PortTemperature: portTemperature,
-        })
+		ports = append(ports, dtos.PortData{
+			PortID:          portID,
+			CurrentTier:     currentTier,
+			CurrentRate:     currentRate,
+			CurrentPower:    currentPower,
+			UsageTime:       usageTime,
+			UsedAmount:      usedAmount,
+			EnergyUsed:      energyUsed,
+			PortTemperature: portTemperature,
+		})
 
-        offset += 17 // Adjust offset to 17 bytes per port
-    }
+		// Store the current power reading for this port
+		utils.StorePortReport(deviceID, int(portID), map[string]interface{}{
+			"currentPower": currentPower,
+		})
 
-    log.Debugf("All ports parsed successfully. Total ports: %d", len(ports))
+		offset += 17 // Adjust offset to 17 bytes per port
+	}
 
-    return &dtos.ChargingPortDataMessage{
-        Header:      header,
-        PortCount:   portCount,
-        Voltage:     voltage,
-        Temperature: temperature,
-        Ports:       ports,
-    }
+	log.Debugf("All ports parsed successfully. Total ports: %d", len(ports))
+
+	return &dtos.ChargingPortDataMessage{
+		Header:      header,
+		PortCount:   portCount,
+		Voltage:     voltage,
+		Temperature: temperature,
+		Ports:       ports,
+	}
 }
-
-
-
-
